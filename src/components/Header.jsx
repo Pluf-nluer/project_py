@@ -1,5 +1,6 @@
 // src/components/Header.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FaSearch, FaShoppingBag, FaUser } from 'react-icons/fa';
 
 const Header = () => {
@@ -14,11 +15,23 @@ const Header = () => {
       {/* Navigation */}
       <nav>
         <ul className="flex gap-8 font-medium text-sm uppercase text-gray-600">
-          <li className="hover:text-primary cursor-pointer">Trang chủ</li>
-          <li className="hover:text-primary cursor-pointer">Khóa học</li>
-          <li className="hover:text-primary cursor-pointer">Tính năng</li>
-          <li className="hover:text-primary cursor-pointer">Blog</li>
-          <li className="hover:text-primary cursor-pointer">Liên hệ</li>
+          <li className="hover:text-primary cursor-pointer">
+             <Link to="/">Trang chủ</Link>
+           </li>
+
+           <li className="hover:text-primary cursor-pointer">
+             <Link to="/courses">Khóa học</Link>
+           </li>
+
+           <li className="hover:text-primary cursor-pointer">
+             <Link to="/features">Tính năng</Link>
+           </li>
+          <li className="hover:text-primary cursor-pointer">
+            <Link to="/blog">Blog</Link>
+          </li>
+          <li className="hover:text-primary cursor-pointer">
+            <Link to="/contact">Liên hệ</Link>
+          </li>
         </ul>
       </nav>
 
