@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Auth = ({ isOpen, onClose, onLogin }) => {
   const [authMode, setAuthMode] = useState("login");
+  const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -183,7 +185,10 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+              <button
+                onClick={() => navigate("/admin")}
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
                 <img
                   src="https://www.google.com/favicon.ico"
                   alt="Google"

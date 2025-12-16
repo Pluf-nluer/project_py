@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaSearch, FaChevronDown, FaUsers, FaStar } from "react-icons/fa";
 import { CiFilter, CiClock2 } from "react-icons/ci";
 import { FiBookOpen } from "react-icons/fi";
-
+import { Link } from "react-router-dom";
 import Header from "../components/Header";
 
 // Course Card Component
@@ -30,9 +30,11 @@ function CourseCard({ course }) {
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-            <button className="bg-white text-gray-900 px-6 py-2.5 rounded-full font-semibold hover:bg-yellow-600 hover:text-white transition-colors">
-              Xem chi tiết
-            </button>
+            <Link to={`/course/${course.id}`} className="block">
+              <button className="bg-white text-gray-900 px-6 py-2.5 rounded-full font-semibold hover:bg-yellow-600 hover:text-white transition-colors">
+                Xem chi tiết
+              </button>
+            </Link>
           </div>
         </div>
       </div>

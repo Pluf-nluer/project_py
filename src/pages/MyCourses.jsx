@@ -11,7 +11,7 @@ const MyCourses = ({ myCourses, isOpen, onToggle, isLoggedIn }) => {
         className="flex items-center gap-2 hover:text-primary transition"
       >
         <FaBook className="text-lg" />
-        <span className="font-medium text-sm">Bài học của tôi</span>
+        <span className="font-medium text-sm">Khóa học của tôi</span>
         <FaChevronDown className="text-xs" />
       </button>
 

@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FaSearch, FaChevronDown } from "react-icons/fa";
+import { FaSearch, FaChevronDown, FaShoppingBag } from "react-icons/fa";
 import Login from "../pages/Login";
 import MyCourses from "../pages/MyCourses";
 
@@ -80,27 +80,27 @@ const Header = () => {
 
             <li>
               <NavLink
-                to="/features"
+                to="/schedule"
                 className={({ isActive }) =>
                   isActive
                     ? "text-primary font-bold"
                     : "text-gray-600 hover:text-primary"
                 }
               >
-                Tính năng
+                Lịch trình
               </NavLink>
             </li>
 
             <li>
               <NavLink
-                to="/blog"
+                to="/admin"
                 className={({ isActive }) =>
                   isActive
                     ? "text-primary font-bold"
                     : "text-gray-600 hover:text-primary"
                 }
               >
-                Blog
+                admin
               </NavLink>
             </li>
 
@@ -133,6 +133,12 @@ const Header = () => {
               isLoggedIn={isLoggedIn}
             />
           )}
+          <div className="relative cursor-pointer hover:text-primary">
+            <FaShoppingBag />
+            <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              0
+            </span>
+          </div>
           {/* User Menu or Login Button */}
           {isLoggedIn ? (
             <div className="relative">
