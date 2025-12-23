@@ -5,7 +5,6 @@ import Home from "./pages/Home"; // Import trang Home
 import Courses from "./pages/Courses"; // Import trang Courses
 import CourseDetail from "./pages/CourseDetail";
 import Schedule from "./pages/Schedule";
-import Admin from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -15,7 +14,6 @@ function App() {
         <Route path="/courses" element={<Courses />} />
         <Route path="/course/:id" element={<CourseDetail />} />
         <Route path="/schedule" element={<Schedule />} />
-        <Route path="/admin" element={<Admin />} />
       </Routes>
     </div>
   );

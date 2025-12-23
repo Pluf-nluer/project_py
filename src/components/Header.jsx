@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { FaSearch, FaChevronDown, FaShoppingBag } from "react-icons/fa";
 import axios from "axios";
-import Login from "../pages/Login"; // Đây chính là component Auth của bạn
+import Login from "../pages/Login"; 
 import MyCourses from "../pages/MyCourses";
 
 const Header = () => {

@@ -201,7 +201,7 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
               </div>
             </div>
             <button
-              onClick={() => navigate("/admin")}
+              onClick={() => navigate("http://127.0.0.1:8000/admin/")}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
               <span className="text-sm font-medium">
