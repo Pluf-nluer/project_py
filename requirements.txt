@@ -1,0 +1,26 @@
+# Django framework
+Django>=4.2
+
+# Django REST Framework
+djangorestframework>=3.20
+
+# CORS headers để React frontend gọi API
+django-cors-headers>=4.0
+
+# Gunicorn để deploy trên server Linux
+gunicorn>=21.2
+
+# Whitenoise phục vụ static files
+whitenoise>=6.5
+
+# Database drivers (tuỳ chọn, bạn dùng DB nào thì uncomment)
+# PostgreSQL
+psycopg2-binary>=2.9
+# MySQL
+# mysqlclient>=2.2
+
+# Quản lý biến môi trường
+django-environ>=0.10.0
+
+# Trợ giúp dev
+python-decouple>=3.8  # nếu muốn dùng .env files
