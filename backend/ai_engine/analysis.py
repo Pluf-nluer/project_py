@@ -9,13 +9,13 @@ from sklearn.metrics import mean_squared_error
 
 def train_and_evaluate():
     csv_file = "B:\\Year_3rd\\Lập trình mạng - Thầy Tính\\training_dataset.csv"
-    print(f"📂 Đang tải dữ liệu từ: {csv_file}...")
+    print(f"Đang tải dữ liệu từ: {csv_file}...")
 
     try:
         df = pd.read_csv(csv_file)
-        print(f"✅ Đã load xong {len(df)} dòng dữ liệu lịch sử.")
+        print(f"Đã load xong {len(df)} dòng dữ liệu lịch sử.")
     except FileNotFoundError:
-        print("❌ Lỗi: Không tìm thấy file dataset. Hãy chạy 'create_dataset.py' trước!")
+        print("Lỗi: Không tìm thấy file dataset. Hãy chạy 'create_dataset.py' trước!")
         return
 
     # --- 2. PRE-PROCESSING (TIỀN XỬ LÝ) ---
@@ -26,19 +26,19 @@ def train_and_evaluate():
     # Đây là bước chuyển dữ liệu thô thành dạng toán học để máy tính hiểu
     matrix = train_df.pivot(index='user_id', columns='course_id', values='rating').fillna(0)
 
-    print(f"📊 Kích thước ma trận học: {matrix.shape} (User x Item)")
+    print(f"Kích thước ma trận học: {matrix.shape} (User x Item)")
 
     # --- 3. TRAINING (HUẤN LUYỆN MODEL) ---
     # Máy tính sẽ cố gắng phân rã ma trận để tìm ra các đặc trưng ẩn (Latent Features)
     # n_components=5: Giả sử có 5 yếu tố ẩn ảnh hưởng đến quyết định (tương ứng 5 Category mình đã tạo)
-    print("🧠 Đang train model SVD (Học các mẫu hành vi)...")
+    print("Đang train model SVD (Học các mẫu hành vi)...")
     svd = TruncatedSVD(n_components=5, random_state=42)
 
     # Đây là lúc máy "HỌC"
     user_factors = svd.fit_transform(matrix)
     item_factors = svd.components_
 
-    print(f"✅ Train xong! Model đã học được {svd.explained_variance_ratio_.sum():.2%} thông tin từ dữ liệu.")
+    print(f"Train xong! Model đã học được {svd.explained_variance_ratio_.sum():.2%} thông tin từ dữ liệu.")
 
     # --- 4. PREDICT & EVALUATE (DỰ ĐOÁN & CHẤM ĐIỂM) ---
     print("imota Đang kiểm tra độ thông minh của Model trên tập Test...")
@@ -72,8 +72,8 @@ def train_and_evaluate():
     # --- 5. REPORT KẾT QUẢ ---
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     print("\n" + "=" * 40)
-    print(f"🎯 KẾT QUẢ ĐÁNH GIÁ MODEL")
-    print(f"📉 RMSE (Sai số trung bình): {rmse:.4f}")
+    print(f"KẾT QUẢ ĐÁNH GIÁ MODEL")
+    print(f"RMSE (Sai số trung bình): {rmse:.4f}")
     print("=" * 40)
 
     if rmse < 1.5:
