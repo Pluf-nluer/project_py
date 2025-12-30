@@ -1,20 +1,40 @@
-# Tạm thời dùng logic ngẫu nhiên hoặc logic đơn giản
+import joblib
+import os
+from django.conf import settings
 from courses.models import Course
-import random
+from ai_engine.models import UserInteraction
+from django.db.models import Count
 
-def get_recommendations(user_profile):
-    """
-    Hàm gợi ý khóa học dựa trên Profile.
-    Hiện tại trả về 3 khóa học ngẫu nhiên chưa học.
-    """
-    all_courses = list(Course.objects.all())
-    if len(all_courses) < 3:
-        return all_courses
-    return random.sample(all_courses, 3)
+MODEL_PATH = os.path.join(settings.BASE_DIR, 'ai_engine', 'nlu_recommendation_model.pkl')
 
-def train_model():
-    """
-    Placeholder cho hàm train model sau này
-    """
-    print("Training process started... (Fake)")
-    return True
+def get_recommendations(user):
+    try:
+        # 1. Xử lý Cold Start cho người dùng mới
+        user_interactions_count = UserInteraction.objects.filter(user=user).count()
+        if user_interactions_count < 3:
+            return Course.objects.annotate(num_users=Count('interactions')).order_by('-num_users')[:5]
+
+        # 2. Kiểm tra và nạp mô hình
+        if not os.path.exists(MODEL_PATH):
+            return Course.objects.all()[:5]
+
+        model = joblib.load(MODEL_PATH)
+
+        # 3. Lọc các khóa học người dùng chưa học
+        enrolled_ids = UserInteraction.objects.filter(user=user).values_list('course_id', flat=True)
+        available_courses = Course.objects.exclude(id__in=enrolled_ids)
+
+        # 4. Dự đoán điểm số cho từng khóa học
+        preds = []
+        for course in available_courses:
+            # uid và iid phải khớp với kiểu dữ liệu lúc train (thường là int)
+            prediction = model.predict(user.id, course.id)
+            preds.append((course, prediction.est))
+
+        # 5. Lấy Top 5
+        preds.sort(key=lambda x: x[1], reverse=True)
+        return [p[0] for p in preds[:5]]
+
+    except Exception as e:
+        print(f"Lỗi AI: {e}")
+        return Course.objects.all()[:5]

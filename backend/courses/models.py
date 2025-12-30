@@ -111,14 +111,28 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
-    
+
+
 class User(AbstractUser):
     # Dùng email để đăng nhập thay vì username
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
-    
+
+    # --- THÊM CÁC TRƯỜNG PROFILE VÀO ĐÂY ---
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name="Ảnh đại diện")
+    bio = models.TextField(max_length=500, blank=True, verbose_name="Giới thiệu bản thân")
+    birth_date = models.DateField(null=True, blank=True, verbose_name="Ngày sinh")
+
+    ROLE_CHOICES = (
+        ('student', 'Học viên'),
+        ('teacher', 'Giáo viên'),
+        ('admin', 'Quản trị viên'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student', verbose_name="Vai trò")
+    # ---------------------------------------
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return self.email
+        return f"{self.email} ({self.get_role_display()})"

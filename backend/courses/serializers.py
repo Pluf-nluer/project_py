@@ -4,60 +4,64 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+class CourseClassSerializer(serializers.ModelSerializer):
+    course_name = serializers.ReadOnlyField(source='course.title')
+    is_full = serializers.ReadOnlyField() # Sử dụng @property từ model
 
-class CourseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Course
+        model = CourseClass
         fields = '__all__'
 
-
-class CourseClassSerializer(serializers.ModelSerializer):
-    course_title = serializers.ReadOnlyField(source='course.title')
-
-    class CourseSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Course
-            # fields = ['id', 'title', 'image', 'category', 'rating', 'price', 'instructor_name', 'total_lessons', 'duration']
-            fields = '__all__'
-
-
 class EnrollmentSerializer(serializers.ModelSerializer):
+    # Hiển thị thông tin chi tiết thay vì chỉ ID
+    student_email = serializers.ReadOnlyField(source='student.email')
+    class_name = serializers.ReadOnlyField(source='course_class.name')
+
     class Meta:
         model = Enrollment
         fields = '__all__'
-        
+
+
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = ['title', 'duration']
+        fields = ['id', 'title', 'duration', 'is_preview', 'order']
+
 
 class ModuleSerializer(serializers.ModelSerializer):
-    lessons = LessonSerializer(many=True, read_only=True) # Lấy danh sách bài học của phần này
+    # 'lessons' phải khớp với related_name trong model Lesson
+    lessons = LessonSerializer(many=True, read_only=True)
 
     class Meta:
         model = Module
-        fields = ['title', 'lessons']
+        fields = ['id', 'title', 'order', 'lessons']
+
 
 class CourseSerializer(serializers.ModelSerializer):
-    sections = ModuleSerializer(source='modules', many=True, read_only=True) # 'modules' là related_name trong model
+    # Hiển thị danh sách Module (sections) và các lớp học (classes) kèm theo
+    sections = ModuleSerializer(source='modules', many=True, read_only=True)
 
     class Meta:
         model = Course
         fields = '__all__'
-        
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'password', 'first_name')
+        # Thêm đầy đủ các trường profile vào đây
+        fields = ('id', 'email', 'password', 'first_name', 'last_name', 'phone', 'avatar', 'role', 'bio')
+        read_only_fields = ('role',) # Thường không cho phép user tự đổi role qua API đăng ký
 
     def create(self, validated_data):
-        # Tự động gán email vào trường username của Django
+        # Loại bỏ các trường profile khỏi data để dùng create_user cho các trường cơ bản
+        # sau đó cập nhật các trường còn lại
+        password = validated_data.pop('password')
         user = User.objects.create_user(
-            username=validated_data['email'], 
-            email=validated_data['email'],
-            password=validated_data['password'],
-            first_name=validated_data.get('first_name', '')
+            username=validated_data['email'], # Sync username với email
+            **validated_data
         )
+        user.set_password(password)
+        user.save()
         return user

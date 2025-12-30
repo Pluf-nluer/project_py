@@ -1,33 +1,39 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from ai_engine.logics import get_recommendations
-from ai_engine.models import UserInteraction  # Import để tránh lỗi nếu logic cần
+from rest_framework.permissions import AllowAny
 
 
 class RecommendationView(APIView):
-    def get(self, request):
-        # Kiểm tra user đã đăng nhập chưa
-        if not request.user.is_authenticated:
-            return Response({"error": "Vui lòng đăng nhập để nhận gợi ý"}, status=401)
+    # Sử dụng permission_classes của DRF để tự động kiểm tra login
+    permission_classes = [AllowAny]
 
-        # Gọi hàm logic lấy gợi ý (Hàm này ở file logic.py bạn đã tạo trước đó)
-        # Lưu ý: Cần đảm bảo file logic.py đã có hàm get_recommendations
+    def get(self, request):
         try:
-            # Truyền user profile vào (tạm thời truyền user object)
-            # Bạn cần đảm bảo logic.py xử lý đúng tham số này
+            # Gọi hàm logic đã cập nhật ở trên
             recommended_courses = get_recommendations(request.user)
 
-            # Trả về kết quả JSON
+            # Bạn có thể dùng Serializer ở đây, hoặc map thủ công như dưới:
             data = [
                 {
-                    "id": c.id,
-                    "title": c.title,
-                    "price": c.price
+                    "id": course.id,
+                    "title": course.title,
+                    "price": course.price,
+                    # Thêm các trường khác để React hiển thị đẹp hơn
+                    "category": course.category if hasattr(course, 'category') else "General",
                 }
-                for c in recommended_courses
+                for course in recommended_courses
             ]
-            return Response(data)
+
+            return Response({
+                "status": "success",
+                "data": data
+            })
+
         except Exception as e:
-            # Nếu lỗi thì trả về danh sách rỗng để không crash app
-            print(f"Lỗi AI: {str(e)}")
-            return Response([])
+            return Response({
+                "status": "error",
+                "message": "Không thể lấy gợi ý vào lúc này",
+                "data": []
+            }, status=500)

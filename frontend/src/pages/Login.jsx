@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; // Đảm bảo đã chạy: npm install axios
 
@@ -7,7 +7,6 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // 1. Quản lý dữ liệu nhập vào (Form State)
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -15,10 +14,34 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
     confirmPassword: "",
   });
 
+  // --- PHẦN SỬA ĐỔI CHÍNH ---
+  // Mỗi khi Modal đóng hoặc mở, hãy reset lại toàn bộ trạng thái
+  useEffect(() => {
+    if (!isOpen) {
+      setError("");
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setAuthMode("login");
+    }
+  }, [isOpen]);
+
+  // Hàm chuyển đổi chế độ và xóa lỗi cũ
+  const toggleAuthMode = (mode) => {
+    setAuthMode(mode);
+    setError(""); // Xóa lỗi khi chuyển tab
+  };
+  // --------------------------
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(""); // Xóa lỗi khi người dùng bắt đầu nhập lại
+    if (error) setError(""); // Xóa lỗi ngay khi người dùng gõ phím
   };
+
+  if (!isOpen) return null;
 
   // 2. Hàm Xử lý Đăng nhập
   const handleLogin = async (e) => {
@@ -29,17 +52,21 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
         password: formData.password,
       });
 
-      localStorage.setItem("access_token", response.data.access);
+      console.log("Dữ liệu Backend trả về:", response.data); // Debug để xem backend trả về gì
 
-      // GIẢ SỬ: Backend trả về thêm thông tin is_staff hoặc is_superuser
-      if (response.data.user.is_staff) {
+      const token = response.data.access;
+      localStorage.setItem("access_token", token);
+
+      // Kiểm tra kỹ cấu trúc response của bạn
+      if (response.data.user && response.data.user.is_staff) {
         window.location.href = "http://127.0.0.1:8000/admin/";
       } else {
-        onLogin();
+        onLogin(); // Cập nhật trạng thái đăng nhập ở App.js
         onClose();
       }
     } catch (err) {
-      setError("Email hoặc mật khẩu không chính xác.");
+      console.error("Lỗi đăng nhập:", err.response?.data);
+      setError(err.response?.data?.detail || "Email hoặc mật khẩu không chính xác.");
     }
   };
 
@@ -94,7 +121,7 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
 
         <div className="flex gap-4 mb-6">
           <button
-            onClick={() => setAuthMode("login")}
+            onClick={() => toggleAuthMode("login")}
             className={`flex-1 py-2 font-semibold rounded-lg transition ${
               authMode === "login"
                 ? "bg-primary text-white"
@@ -104,7 +131,7 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
             Đăng nhập
           </button>
           <button
-            onClick={() => setAuthMode("register")}
+            onClick={() => toggleAuthMode("register")}
             className={`flex-1 py-2 font-semibold rounded-lg transition ${
               authMode === "register"
                 ? "bg-primary text-white"

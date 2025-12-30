@@ -2,14 +2,16 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { FaSearch, FaChevronDown, FaShoppingBag } from "react-icons/fa";
 import axios from "axios";
-import Login from "../pages/Login"; 
+import Login from "../pages/Login";
 import MyCourses from "../pages/MyCourses";
 
 const Header = () => {
   // 1. Khởi tạo trạng thái dựa trên Token có sẵn trong máy
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access_token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!localStorage.getItem("access_token")
+  );
   const [user, setUser] = useState({ name: "", email: "", avatar: null });
-  
+
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCoursesMenu, setShowCoursesMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -25,12 +27,12 @@ const Header = () => {
     try {
       const token = localStorage.getItem("access_token");
       const response = await axios.get("http://127.0.0.1:8000/api/profile/", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setUser({
         name: response.data.first_name || response.data.username,
         email: response.data.email,
-        avatar: response.data.avatar
+        avatar: response.data.avatar,
       });
     } catch (error) {
       console.error("Lỗi xác thực hoặc Token hết hạn");
@@ -71,9 +73,42 @@ const Header = () => {
         {/* Navigation */}
         <nav>
           <ul className="flex gap-8 font-medium text-sm uppercase">
-            <li><NavLink to="/" className={({ isActive }) => isActive ? "text-primary font-bold" : "text-gray-600 hover:text-primary"}>Trang chủ</NavLink></li>
-            <li><NavLink to="/courses" className={({ isActive }) => isActive ? "text-primary font-bold" : "text-gray-600 hover:text-primary"}>Khóa học</NavLink></li>
-            <li><NavLink to="/schedule" className={({ isActive }) => isActive ? "text-primary font-bold" : "text-gray-600 hover:text-primary"}>Lịch trình</NavLink></li>
+            <li>
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-primary font-bold"
+                    : "text-gray-600 hover:text-primary"
+                }
+              >
+                Trang chủ
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/courses"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-primary font-bold"
+                    : "text-gray-600 hover:text-primary"
+                }
+              >
+                Khóa học
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/schedule"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-primary font-bold"
+                    : "text-gray-600 hover:text-primary"
+                }
+              >
+                Lịch trình
+              </NavLink>
+            </li>
           </ul>
         </nav>
 
@@ -82,19 +117,38 @@ const Header = () => {
           <FaSearch className="cursor-pointer hover:text-primary text-lg" />
 
           {isLoggedIn && (
-            <MyCourses isOpen={showCoursesMenu} onToggle={handleCoursesClick} isLoggedIn={isLoggedIn} />
+            <MyCourses
+              isOpen={showCoursesMenu}
+              onToggle={handleCoursesClick}
+              isLoggedIn={isLoggedIn}
+            />
           )}
 
           <div className="relative cursor-pointer hover:text-primary">
             <FaShoppingBag />
-            <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">0</span>
+            <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              0
+            </span>
           </div>
 
           {isLoggedIn ? (
             <div className="relative">
-              <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-2 hover:text-primary">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 hover:text-primary"
+              >
                 <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold overflow-hidden">
-                  {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : // Thêm kiểm tra user.name có tồn tại không trước khi charAt
+                  user.name ? (
+                    user.name.charAt(0).toUpperCase()
+                  ) : (
+                    "U"
+                  )}
                 </div>
                 <FaChevronDown className="text-xs" />
               </button>
@@ -106,21 +160,39 @@ const Header = () => {
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
                   <div className="py-2">
-                    <NavLink to="/profile" className="block px-4 py-2 hover:bg-gray-50" onClick={() => setShowUserMenu(false)}>Tài khoản của tôi</NavLink>
-                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600">Đăng xuất</button>
+                    <NavLink
+                      to="/profile"
+                      className="block px-4 py-2 hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Tài khoản của tôi
+                    </NavLink>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600"
+                    >
+                      Đăng xuất
+                    </button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <button onClick={() => setShowAuthModal(true)} className="text-sm font-bold uppercase hover:text-primary transition">
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="text-sm font-bold uppercase hover:text-primary transition"
+            >
               Đăng nhập / Đăng ký
             </button>
           )}
         </div>
       </header>
 
-      <Login isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLogin={handleLoginSuccess} />
+      <Login
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={handleLoginSuccess}
+      />
     </>
   );
 };
