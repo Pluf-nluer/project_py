@@ -85,3 +85,15 @@ class CourseClassListView(generics.ListAPIView):
     queryset = CourseClass.objects.all()
     serializer_class = CourseClassSerializer
     permission_classes = [AllowAny]
+    
+from rest_framework.decorators import api_view, permission_classes
+@api_view(['GET'])
+@permission_classes([AllowAny]) # Khóa học phổ biến nên cho phép mọi người xem
+def get_popular_courses(request):
+    # Lấy 4 khóa học có rating cao nhất và nhiều học viên nhất
+    courses = Course.objects.order_by('-rating', '-imported_enrollments')[:4]
+    serializer = CourseSerializer(courses, many=True)
+    return Response({
+        "status": "success",
+        "data": serializer.data
+    })

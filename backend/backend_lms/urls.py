@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/register/', RegisterView.as_view(), name='auth_register'),
     # API Đăng nhập (Lấy Token)
     path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/courses/', include('courses.urls')),
     
 ]
 

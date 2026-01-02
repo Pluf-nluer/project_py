@@ -1,6 +1,7 @@
 from django.urls import path
 from django.urls import path,include
 from courses.views import EnrollClassView, CourseClassListView, CourseListView, CourseDetailView, UserProfileView
+from courses.views import get_popular_courses
 
 urlpatterns = [
     path('', CourseListView.as_view(), name='course-list'),
@@ -9,4 +10,5 @@ urlpatterns = [
     path('enroll/', EnrollClassView.as_view(), name='enroll-class'),      # Đăng ký
     path('api/profile/', UserProfileView.as_view(), name='user-profile'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
+    path('popular/', get_popular_courses, name='popular-courses'),
 ]
