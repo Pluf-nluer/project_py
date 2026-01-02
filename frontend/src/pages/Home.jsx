@@ -11,7 +11,6 @@ function Home() {
   useEffect(() => {
   const token = localStorage.getItem("access_token"); 
 
-  // Tạm thời bỏ IF để test xem dữ liệu có lên không
   fetch('http://localhost:8000/api/ai/recommendations/', {
     headers: { 
       // Nếu không có token thì gửi chuỗi rỗng hoặc bỏ luôn header này để test

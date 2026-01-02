@@ -26,9 +26,14 @@ const Header = () => {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await axios.get("http://127.0.0.1:8000/api/profile/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/courses/profile/",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setUser({
         name: response.data.first_name || response.data.username,
         email: response.data.email,
