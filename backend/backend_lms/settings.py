@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 import os
 
 # Đường dẫn gốc dự án
@@ -25,6 +26,7 @@ INSTALLED_APPS = [
     'courses',
     'ai_engine',
     "corsheaders",  
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -93,3 +95,19 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173"
 ]
 LANGUAGE_CODE = 'vi'
+
+#Q
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# Tùy chọn: Tăng thời gian sống của access token (mặc định chỉ 5 phút)
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # 60 phút thay vì 5 phút
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+}

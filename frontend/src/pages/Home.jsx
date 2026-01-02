@@ -4,34 +4,33 @@ import HeroSection from "../components/HeroSection";
 import CourseCard from "../components/CourseCard";
 
 function Home() {
-
   const [recommendedCourses, setRecommendedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  const token = localStorage.getItem("access_token"); 
+    const token = localStorage.getItem("access_token");
 
-  // Tạm thời bỏ IF để test xem dữ liệu có lên không
-  fetch('http://localhost:8000/api/ai/recommendations/', {
-    headers: { 
-      // Nếu không có token thì gửi chuỗi rỗng hoặc bỏ luôn header này để test
-      'Authorization': token ? `Bearer ${token}` : '', 
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(res => res.json())
-  .then(response => {
-    console.log("Dữ liệu nhận được:", response); // Thêm dòng này để debug
-    if (response.status === "success") {
-      setRecommendedCourses(response.data);
-    }
-    setLoading(false);
-  })
-  .catch(err => {
-    console.error("Lỗi fetch:", err);
-    setLoading(false);
-  });
-}, []);
+    // Tạm thời bỏ IF để test xem dữ liệu có lên không
+    fetch("http://localhost:8000/api/ai/recommendations/", {
+      headers: {
+        // Nếu không có token thì gửi chuỗi rỗng hoặc bỏ luôn header này để test
+        Authorization: token ? `Bearer ${token}` : "",
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        console.log("Dữ liệu nhận được:", response); // Thêm dòng này để debug
+        if (response.status === "success") {
+          setRecommendedCourses(response.data);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Lỗi fetch:", err);
+        setLoading(false);
+      });
+  }, []);
   // Dữ liệu giả lập (Mock Data)
   const popularCourses = [
     {
@@ -52,7 +51,7 @@ function Home() {
       image:
         "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png",
       category: "IT & Software",
-      price: "$59.00",
+      price: "59.00",
       students: 50,
       lessons: 25,
     },
@@ -63,7 +62,7 @@ function Home() {
       image:
         "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png",
       category: "Art",
-      price: "$39.00",
+      price: "39.00",
       students: 230,
       lessons: 6,
     },
@@ -74,7 +73,7 @@ function Home() {
       image:
         "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png",
       category: "Backend",
-      price: "$69.00",
+      price: "69.00",
       students: 150,
       lessons: 40,
     },
@@ -100,14 +99,19 @@ function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {recommendedCourses.map((course) => (
-                <CourseCard key={`ai-${course.id}`} course={{
-                  ...course,
-                  // Đảm bảo có ảnh mặc định nếu backend chưa trả về
-                  image: course.image || "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png",
-                  instructor: course.instructor_name || "Chuyên gia",
-                  students: 100, // Có thể bổ sung từ DB sau
-                  lessons: course.total_lessons || 0
-                }} />
+                <CourseCard
+                  key={`ai-${course.id}`}
+                  course={{
+                    ...course,
+                    // Đảm bảo có ảnh mặc định nếu backend chưa trả về
+                    image:
+                      course.image ||
+                      "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png",
+                    instructor: course.instructor_name || "Chuyên gia",
+                    students: 100, // Có thể bổ sung từ DB sau
+                    lessons: course.total_lessons || 0,
+                  }}
+                />
               ))}
             </div>
           </div>

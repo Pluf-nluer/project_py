@@ -42,6 +42,10 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         # Trả về chính user đang đăng nhập
         return self.request.user
+    
+    def patch(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
 # 4. API Đăng ký lớp học (Logic quan trọng nhất)
 class EnrollClassView(APIView):
