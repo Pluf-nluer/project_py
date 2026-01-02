@@ -7,16 +7,16 @@ from django.db.models import Count
 
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'ai_engine', 'nlu_recommendation_model.pkl')
 
-def get_recommendations(user):
+def get_recommendations(user, num_rec=8):
     try:
         # 1. Xử lý Cold Start cho người dùng mới
         user_interactions_count = UserInteraction.objects.filter(user=user).count()
         if user_interactions_count < 3:
-            return Course.objects.annotate(num_users=Count('interactions')).order_by('-num_users')[:5]
+            return Course.objects.annotate(num_users=Count('interactions')).order_by('-num_users')[:num_rec]
 
         # 2. Kiểm tra và nạp mô hình
         if not os.path.exists(MODEL_PATH):
-            return Course.objects.all()[:5]
+            return Course.objects.all()[:num_rec]
 
         model = joblib.load(MODEL_PATH)
 
@@ -33,8 +33,8 @@ def get_recommendations(user):
 
         # 5. Lấy Top 5
         preds.sort(key=lambda x: x[1], reverse=True)
-        return [p[0] for p in preds[:5]]
+        return [p[0] for p in preds[:num_rec]]
 
     except Exception as e:
         print(f"Lỗi AI: {e}")
-        return Course.objects.all()[:5]
+        return Course.objects.all()[:num_rec]

@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
 class Course(models.Model):
@@ -20,6 +20,15 @@ class Course(models.Model):
         blank=True,
         verbose_name="Danh mục"
     )
+    # Bổ sung các trường để khớp với edX và Skillshare
+    institution = models.CharField(max_length=255, null=True, blank=True, verbose_name="Tổ chức cấp bằng")
+    level = models.CharField(max_length=50, null=True, blank=True, verbose_name="Trình độ")
+    language = models.CharField(max_length=50, default="English", verbose_name="Ngôn ngữ")
+    external_link = models.URLField(null=True, blank=True, verbose_name="Link gốc khóa học")
+    imported_enrollments = models.IntegerField(default=0, verbose_name="Số lượng học viên (từ dataset)")
+
+    # Trường mô tả text cho tiên quyết (vì edX cung cấp dạng văn bản)
+    prerequisites_text = models.TextField(null=True, blank=True, verbose_name="Yêu cầu đầu vào (Text)")
 
     class Meta:
         verbose_name = "Khóa học"

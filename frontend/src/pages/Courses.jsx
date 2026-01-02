@@ -13,7 +13,7 @@ function CourseCard({ course }) {
       <div className="relative overflow-hidden">
         <img
           // Nếu image từ backend là null, sử dụng ảnh placeholder
-          src={course.image || "https://via.placeholder.com/850x500"}
+          src={"https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png"}
           alt={course.title}
           className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-700"
         />
@@ -94,10 +94,7 @@ function Courses() {
   const [priceFilter, setPriceFilter] = useState("All");
   const [ratingFilters, setRatingFilters] = useState([]);
 
-  const categories = [
-    { name: "All" }, { name: "Photography" }, { name: "IT & Software" }, 
-    { name: "Art" }, { name: "Backend" },
-  ];
+  const categories = ["All", ...new Set(courses.map(c => c.category))];
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -208,15 +205,15 @@ function Courses() {
             <div className="mb-8 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                {categories.map(cat => (
                  <button 
-                  key={cat.name} 
-                  onClick={() => setSelectedCategory(cat.name)}
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)}
                   className={`px-8 py-2.5 rounded-full border transition-all duration-300 font-medium whitespace-nowrap ${
-                    selectedCategory === cat.name 
+                    selectedCategory === cat
                     ? 'bg-green-600 text-white border-green-600 shadow-md transform scale-105' 
                     : 'bg-white text-gray-700 border-gray-200 hover:border-green-600'
                   }`}
                  >
-                   {cat.name}
+                   {cat}
                  </button>
                ))}
             </div>
