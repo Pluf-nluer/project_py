@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from courses.models import Course, CourseClass, Enrollment, WaitingList, Module, Lesson
 from django.contrib.auth import get_user_model
+from courses.models import Quiz, Question, Choice
+
 
 User = get_user_model()
 
@@ -78,3 +80,28 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+# 6. Quiz, Question, Choice Serializers
+class ChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Choice
+        fields = ['id', 'text']
+
+class QuestionSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Question
+        fields = ['id', 'text', 'order', 'choices']
+
+class QuizSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Quiz
+        fields = ['id', 'title', 'description', 'questions']
+
+class QuizSubmitSerializer(serializers.Serializer):
+    answers = serializers.DictField(
+        child=serializers.IntegerField()  # {question_id: choice_id}
+    )

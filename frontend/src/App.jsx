@@ -5,7 +5,8 @@ import Home from "./pages/Home"; // Import trang Home
 import Courses from "./pages/Courses"; // Import trang Courses
 import CourseDetail from "./pages/CourseDetail";
 import Schedule from "./pages/Schedule";
-import Profile from "./pages/profile";
+import Profile from "./pages/Profile";
+import PlacementQuiz from "./pages/Quiz";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/course/:id" element={<CourseDetail />} />
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/placement-quiz" element={<PlacementQuiz />} />
       </Routes>
     </div>
   );
