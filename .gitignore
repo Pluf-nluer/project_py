@@ -27,3 +27,14 @@ dist-ssr
 .venv
 /.idea/
 
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cẩn thận không push database lên
+db.sqlite3
+db.sqlite3-journal
+
+# Môi trường ảo (nếu đặt tên khác)
+venv/
+env/

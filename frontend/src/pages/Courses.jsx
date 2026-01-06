@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { FaSearch, FaUsers, FaStar } from "react-icons/fa";
 import { CiFilter, CiClock2 } from "react-icons/ci";
@@ -10,6 +10,10 @@ import CourseCard from "../components/CourseCard";
 function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  // --- THÊM STATE CHO PHÂN TRANG ---
+  const [nextPage, setNextPage] = useState(null);
+  const [prevPage, setPrevPage] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceFilter, setPriceFilter] = useState("All");
@@ -17,21 +21,44 @@ function Courses() {
 
   const categories = ["All", ...new Set(courses.map(c => c.category))];
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        // Gọi API lấy danh sách khóa học
-        const response = await axios.get("http://127.0.0.1:8000/api/courses/");
-        setCourses(response.data);
-      } catch (error) {
-        console.error("Lỗi khi kết nối API:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourses();
+ // URL gốc của API
+  const BASE_URL = "http://127.0.0.1:8000/api/courses/";
+
+  // 1. Đưa hàm fetchCourses ra ngoài và dùng useCallback
+  const fetchCourses = useCallback(async (url) => {
+    try {
+      setLoading(true);
+      // Nếu không truyền url, dùng BASE_URL
+      const response = await axios.get(url || BASE_URL);
+
+      const results = Array.isArray(response.data.results) ? response.data.results : [];
+      setCourses(response.data.results);
+      setNextPage(response.data.next);
+      setPrevPage(response.data.previous);
+      
+      // Cuộn lên đầu trang khi data tải xong
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      console.error("Lỗi khi kết nối API:", error);
+      setCourses([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+// --- HÀM XÂY DỰNG URL VÀ GỌI API KHI BỘ LỌC THAY ĐỔI ---
+  useEffect(() => {
+    fetchCourses(BASE_URL);
+  }, [fetchCourses]);
+
+  // 3. Xử lý chuyển trang: Gọi lại fetchCourses với URL mới
+  const handlePageChange = (url, direction) => {
+    if (url) {
+      fetchCourses(url);
+      setCurrentPage((prev) => (direction === 'next' ? prev + 1 : prev - 1));
+    }
+  };
+  
   const handleRatingChange = (rating) => {
     setRatingFilters((prev) =>
       prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
@@ -152,6 +179,35 @@ function Courses() {
                 <p className="text-gray-500">Hãy thử thay đổi từ khóa hoặc bộ lọc của bạn</p>
               </div>
             )}
+
+            {/* --- THANH PHÂN TRANG --- */}
+            <div className="flex justify-center items-center mt-12 gap-6">
+                <button
+                    onClick={() => handlePageChange(prevPage, 'prev')}
+                    disabled={!prevPage}
+                    className={`px-6 py-2 rounded-full font-bold transition flex items-center gap-2 ${
+                        !prevPage 
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                        : 'bg-white border border-gray-300 hover:bg-green-50 text-green-700'
+                    }`}
+                >
+                    ← Trang trước
+                </button>
+                
+                <span className="text-gray-600 font-medium">Trang {currentPage}</span>
+
+                <button
+                    onClick={() => handlePageChange(nextPage, 'next')}
+                    disabled={!nextPage}
+                    className={`px-6 py-2 rounded-full font-bold transition flex items-center gap-2 ${
+                        !nextPage 
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                        : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
+                    }`}
+                >
+                    Trang sau →
+                </button>
+            </div>
           </main>
         </div>
       </div>
