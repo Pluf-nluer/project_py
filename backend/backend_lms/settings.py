@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+     'django_filters',
     'core',
     'courses',
     'ai_engine',
@@ -100,6 +101,14 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+      # --- THÊM PHẦN NÀY ĐỂ PHÂN TRANG ---
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,  # Mỗi trang chỉ hiện 6 khóa học
+
+    # Mặc định ai cũng xem được (Read), nhưng muốn sửa (Write) thì phải đăng nhập
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
 }
 
 # Tùy chọn: Tăng thời gian sống của access token (mặc định chỉ 5 phút)
@@ -109,3 +118,6 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
 }
+# Nơi lưu trữ file upload (ảnh, video, tài liệu)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

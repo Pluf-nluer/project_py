@@ -21,9 +21,12 @@ const HeroSection = () => {
           Giáo dục là <br /> con đường đến tương lai
         </h1>
         <div className="flex gap-4">
-          <button className="bg-primary text-white px-8 py-4 rounded hover:bg-yellow-600 font-bold uppercase text-sm transition">
+          <Link
+            to="/courses"
+            className="bg-yellow-500 text-white px-8 py-4 rounded hover:bg-yellow-600 font-bold uppercase text-sm transition inline-block"
+          >
             Xem các khóa học
-          </button>
+          </Link>
           <button className="bg-white text-text-dark px-8 py-4 rounded hover:bg-gray-100 font-bold uppercase text-sm transition">
             Liên hệ với chúng tôi
           </button>

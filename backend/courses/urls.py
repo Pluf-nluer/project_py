@@ -1,10 +1,14 @@
 from django.urls import path
 from django.urls import path,include
+from django.conf import settings
+from django.conf.urls.static import static
 from courses.views import EnrollClassView, CourseClassListView, CourseListView, CourseDetailView, UserProfileView
 from courses.views import get_popular_courses
 from courses.views import ChangePasswordView
 from courses.views import MyEnrolledCoursesView
 from courses.views import PlacementQuizView, SubmitQuizView
+# Import view đăng ký từ courses.views
+from courses.views import RegisterView
 
 urlpatterns = [
     path('', CourseListView.as_view(), name='course-list'),
@@ -18,4 +22,7 @@ urlpatterns = [
     path('my-courses/', MyEnrolledCoursesView.as_view(), name='my-enrolled-courses'),
     path('placement-quiz/', PlacementQuizView.as_view(), name='placement-quiz'),
     path('submit-quiz/', SubmitQuizView.as_view(), name='submit-quiz'),
+    path('course-classes/', CourseClassListView.as_view(), name='course-class-list'),
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

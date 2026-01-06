@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets,filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated,IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
-
+from django_filters.rest_framework import DjangoFilterBackend
 from courses.models import CourseClass, Enrollment, WaitingList, Course
 from courses.services import check_prerequisites, check_schedule_conflict
 from courses.serializers import (
@@ -25,10 +25,18 @@ User = get_user_model()
 class CourseDetailView(generics.RetrieveAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class CourseListView(generics.ListAPIView):
-    queryset = Course.objects.all()
+    queryset = Course.objects.all().order_by('-id')
     serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    # Hỗ trợ tìm kiếm theo tiêu đề (Search)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'category']
+
+    # Trong settings.py bạn đã set 'PAGE_SIZE': 6
 
 # 2. Đăng ký tài khoản mới
 class RegisterView(generics.CreateAPIView):
@@ -87,6 +95,9 @@ class CourseClassListView(generics.ListAPIView):
     queryset = CourseClass.objects.all()
     serializer_class = CourseClassSerializer
     permission_classes = [AllowAny]
+    
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['course']
     
 from rest_framework.decorators import api_view, permission_classes
 @api_view(['GET'])
