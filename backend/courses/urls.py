@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/profile/', UserProfileView.as_view(), name='user-profile'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('popular/', get_popular_courses, name='popular-courses'),
+    path('course-classes/', CourseClassListView.as_view(), name='course-class-list'),
 ]
 # Cấu hình media
 if settings.DEBUG:

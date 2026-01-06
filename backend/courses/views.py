@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated,IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
-
+from django_filters.rest_framework import DjangoFilterBackend
 from courses.models import CourseClass, Enrollment, WaitingList, Course
 from courses.services import check_prerequisites, check_schedule_conflict
 from courses.serializers import (
@@ -96,6 +96,9 @@ class CourseClassListView(generics.ListAPIView):
     queryset = CourseClass.objects.all()
     serializer_class = CourseClassSerializer
     permission_classes = [AllowAny]
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['course']
     
 from rest_framework.decorators import api_view, permission_classes
 @api_view(['GET'])
