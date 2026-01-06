@@ -15,13 +15,32 @@ const Header = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCoursesMenu, setShowCoursesMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [myCourses, setMyCourses] = useState([]);
 
   // 2. Tự động lấy thông tin User từ Django khi đã có Token
   useEffect(() => {
     if (isLoggedIn) {
       fetchUserProfile();
+      fetchMyCourses();
     }
   }, [isLoggedIn]);
+  const fetchMyCourses = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/courses/my-courses/",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setMyCourses(response.data); // ← Cập nhật danh sách khóa học
+    } catch (err) {
+      console.error("Lỗi lấy khóa học của tôi:", err);
+      setMyCourses([]); // Nếu lỗi thì để rỗng
+    }
+  };
 
   const fetchUserProfile = async () => {
     try {
@@ -48,6 +67,8 @@ const Header = () => {
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
     setShowAuthModal(false);
+    fetchUserProfile();
+    fetchMyCourses();
   };
 
   const handleLogout = () => {
@@ -114,6 +135,11 @@ const Header = () => {
                 Lịch trình
               </NavLink>
             </li>
+            <li>
+              <NavLink to="/placement-quiz" className="btn-primary">
+                Kiểm tra năng lực đầu vào
+              </NavLink>
+            </li>
           </ul>
         </nav>
 
@@ -123,6 +149,7 @@ const Header = () => {
 
           {isLoggedIn && (
             <MyCourses
+              myCourses={myCourses} // ← Truyền dữ liệu vào
               isOpen={showCoursesMenu}
               onToggle={handleCoursesClick}
               isLoggedIn={isLoggedIn}
@@ -145,11 +172,13 @@ const Header = () => {
                 <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold overflow-hidden">
                   {user.avatar ? (
                     <img
-                      src={user.avatar}
-                      className="w-full h-full object-cover"
+                      src={
+                        user.avatar || "https://via.placeholder.com/36?text=U"
+                      }
+                      alt="Avatar"
+                      className="w-full h-full object-cover rounded-full"
                     />
-                  ) : // Thêm kiểm tra user.name có tồn tại không trước khi charAt
-                  user.name ? (
+                  ) : user.name ? (
                     user.name.charAt(0).toUpperCase()
                   ) : (
                     "U"

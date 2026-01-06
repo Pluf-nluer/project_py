@@ -16,6 +16,8 @@ from courses.serializers import (
 
 from courses.models import CourseClass
 from courses.serializers import CourseClassSerializer
+from courses.models import Quiz, Question, Choice, QuizResult
+from courses.serializers import QuizSerializer, QuizSubmitSerializer
 
 User = get_user_model()
 
@@ -97,3 +99,117 @@ def get_popular_courses(request):
         "status": "success",
         "data": serializer.data
     })
+
+# 5. Đổi mật khẩu
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password1 = request.data.get("new_password1")
+        new_password2 = request.data.get("new_password2")
+
+        # Kiểm tra mật khẩu cũ
+        if not user.check_password(old_password):
+            return Response(
+                {"old_password": ["Mật khẩu cũ không đúng."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Kiểm tra mật khẩu mới khớp nhau
+        if new_password1 != new_password2:
+            return Response(
+                {"new_password2": ["Hai mật khẩu mới không khớp."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Kiểm tra độ dài mật khẩu (tùy chọn)
+        if len(new_password1) < 4:
+            return Response(
+                {"new_password1": ["Mật khẩu mới phải ít nhất 4 ký tự."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Đổi mật khẩu
+        user.set_password(new_password1)
+        user.save()
+
+        return Response({"message": "Đổi mật khẩu thành công!"}, status=status.HTTP_200_OK)
+    
+# 6. Xem các khóa học đã đăng ký
+class MyEnrolledCoursesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        enrollments = Enrollment.objects.filter(student=request.user, status='ACTIVE')  # hoặc tất cả
+        courses = [enrollment.course_class.course for enrollment in enrollments]
+        serializer = CourseSerializer(courses, many=True)
+        return Response(serializer.data)
+    
+
+# 7. Bài kiểm tra đánh giá năng lực đầu vào
+class PlacementQuizView(APIView):
+    permission_classes = [AllowAny]  # Ai cũng làm được
+
+    def get(self, request):
+        quiz = Quiz.objects.filter(is_active=True).first()
+        if not quiz:
+            return Response({"error": "Chưa có bài kiểm tra"}, status=404)
+        serializer = QuizSerializer(quiz)
+        return Response(serializer.data)
+
+class SubmitQuizView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = QuizSubmitSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        answers = serializer.validated_data['answers']
+        quiz = Quiz.objects.filter(is_active=True).first()
+        if not quiz:
+            return Response({"error": "Không tìm thấy bài kiểm tra"}, status=404)
+
+        questions = quiz.questions.all()
+        correct_count = 0
+
+        for question in questions:
+            selected_choice_id = answers.get(str(question.id))
+            if selected_choice_id:
+                choice = question.choices.filter(id=selected_choice_id, is_correct=True).exists()
+                if choice:
+                    correct_count += 1
+
+        score = int((correct_count / questions.count()) * 100) if questions.count() > 0 else 0
+
+        # Xác định trình độ
+        if score < 40:
+            level = "Beginner"
+        elif score < 70:
+            level = "Intermediate"
+        else:
+            level = "Advanced"
+
+        # Lưu kết quả
+        QuizResult.objects.update_or_create(
+            student=request.user,
+            quiz=quiz,
+            defaults={
+                'score': score,
+                'total_questions': questions.count(),
+                'recommended_level': level
+            }
+        )
+
+        # Gợi ý khóa học theo level (bạn có thể thêm field level vào Course)
+        recommended_courses = Course.objects.filter(category__icontains=level.lower())[:6]
+        course_serializer = CourseSerializer(recommended_courses, many=True)
+
+        return Response({
+            "score": score,
+            "total": questions.count(),
+            "level": level,
+            "recommended_courses": course_serializer.data
+        })
