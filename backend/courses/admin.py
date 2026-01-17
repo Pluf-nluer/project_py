@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Course, CourseClass, Enrollment, WaitingList, Module, Lesson, User
+from .models import Quiz, Question, Choice, QuizResult
 
 
 # --- 0. QUẢN LÝ USER (BẮT BUỘC THÊM) ---
@@ -79,3 +80,34 @@ class WaitingListAdmin(admin.ModelAdmin):
     list_display = ('student', 'course_class', 'created_at')
     readonly_fields = ('created_at',)
     search_fields = ('student__email',)
+
+# --- 5. QUẢN LÝ BÀI KIỂM TRA ĐÁNH GIÁ NĂNG LỰC ĐẦU VÀO ---
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'description')
+
+# Đăng ký Question (dạng inline để thêm dễ dàng trong Quiz)
+class ChoiceInline(admin.TabularInline):
+    model = Choice
+    extra = 4  # Mặc định hiện 4 lựa chọn
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ('text', 'quiz', 'order')
+    list_filter = ('quiz',)
+    search_fields = ('text',)
+    inlines = [ChoiceInline]
+
+# Nếu muốn quản lý riêng Choice (không cần thiết)
+# @admin.register(Choice)
+# class ChoiceAdmin(admin.ModelAdmin):
+#     list_display = ('text', 'question', 'is_correct')
+#     list_filter = ('is_correct',)
+
+@admin.register(QuizResult)
+class QuizResultAdmin(admin.ModelAdmin):
+    list_display = ('student', 'quiz', 'score', 'recommended_level', 'completed_at')
+    list_filter = ('recommended_level', 'quiz')
+    readonly_fields = ('completed_at',)

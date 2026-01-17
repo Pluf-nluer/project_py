@@ -13,7 +13,7 @@ import {
   FaPhoneAlt,
   FaRegUser,
   FaRegBell,
-  FaAward
+  FaAward,
 } from "react-icons/fa";
 import { IoIosSettings } from "react-icons/io";
 import { IoMailOutline } from "react-icons/io5";
@@ -21,6 +21,7 @@ import { FiMapPin } from "react-icons/fi";
 import { MdLogin } from "react-icons/md";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { IoCloseSharp } from "react-icons/io5";
 
 const Header = () => (
   <header className="bg-white shadow-sm py-4 px-6 sticky top-0 z-50">
@@ -272,6 +273,13 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    old_password: "",
+    new_password1: "",
+    new_password2: "",
+  });
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -457,6 +465,42 @@ const Profile = () => {
   if (error) {
     return <div>Lỗi: {error}</div>;
   }
+  // Change Password State and Handler
+  const handleChangePassword = async () => {
+    if (passwordData.new_password1 !== passwordData.new_password2) {
+      setPasswordError("Mật khẩu mới không khớp!");
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    try {
+      await axios.post(
+        "http://127.0.0.1:8000/api/courses/change-password/",
+        passwordData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Đổi mật khẩu thành công!");
+      setShowChangePassword(false);
+      setPasswordData({
+        old_password: "",
+        new_password1: "",
+        new_password2: "",
+      });
+    } catch (err) {
+      setPasswordError(
+        err.response?.data?.old_password?.[0] || "Đổi mật khẩu thất bại."
+      );
+    }
+  };
+  // Logout Handler
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    window.location.href = "/"; // hoặc "/" để về trang chủ
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -681,38 +725,36 @@ const Profile = () => {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-2xl font-bold mb-6">Cài đặt tài khoản</h2>
                 <div className="space-y-4">
-                  <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <button
+                    onClick={() => setShowChangePassword(true)}
+                    className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
                     <div className="flex items-center gap-3">
-                      <FaLock className="text-gray-600" size={20} />
+                      <FaLock size={20} className="text-gray-600" />
                       <div className="text-left">
                         <div className="font-semibold">Đổi mật khẩu</div>
                         <div className="text-sm text-gray-600">
-                          Cập nhật mật khẩu của bạn
+                          Cập nhật mật khẩu mới
                         </div>
                       </div>
                     </div>
+                    <span className="text-gray-400">→</span>
                   </button>
 
-                  <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <FaRegBell className="text-gray-600" size={20} />
-                      <div className="text-left">
-                        <div className="font-semibold">Thông báo</div>
-                        <div className="text-sm text-gray-600">
-                          Quản lý cài đặt thông báo
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button className="w-full flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors text-red-600">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors text-red-600"
+                  >
                     <div className="flex items-center gap-3">
                       <MdLogin size={20} />
                       <div className="text-left">
                         <div className="font-semibold">Đăng xuất</div>
-                        <div className="text-sm">Đăng xuất khỏi tài khoản</div>
+                        <div className="text-sm">
+                          Thoát khỏi tài khoản hiện tại
+                        </div>
                       </div>
                     </div>
+                    <span className="text-red-400">→</span>
                   </button>
                 </div>
               </div>
@@ -732,7 +774,7 @@ const Profile = () => {
                   onClick={handleCancelEdit}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <IoCloseSharp  size={24} />
+                  <IoCloseSharp size={24} />
                 </button>
               </div>
 
@@ -823,6 +865,86 @@ const Profile = () => {
                   Lưu thay đổi
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showChangePassword && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Đổi mật khẩu</h2>
+              <button
+                onClick={() => {
+                  setShowChangePassword(false);
+                  setPasswordError("");
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaLock size={24} />
+              </button>
+            </div>
+
+            {passwordError && (
+              <p className="text-red-600 text-sm mb-4">{passwordError}</p>
+            )}
+
+            <div className="space-y-4">
+              <input
+                type="password"
+                placeholder="Mật khẩu cũ"
+                value={passwordData.old_password}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    old_password: e.target.value,
+                  })
+                }
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="password"
+                placeholder="Mật khẩu mới"
+                value={passwordData.new_password1}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    new_password1: e.target.value,
+                  })
+                }
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="password"
+                placeholder="Xác nhận mật khẩu mới"
+                value={passwordData.new_password2}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    new_password2: e.target.value,
+                  })
+                }
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowChangePassword(false);
+                  setPasswordError("");
+                }}
+                className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleChangePassword}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <FaSave size={18} />
+                Lưu mật khẩu
+              </button>
             </div>
           </div>
         </div>

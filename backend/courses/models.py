@@ -145,3 +145,45 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.get_role_display()})"
+
+# 6. Mô hình cho Bài kiểm tra đánh giá năng lực đầu vào
+class Quiz(models.Model):
+    title = models.CharField(max_length=255, default="Kiểm tra năng lực đầu vào")
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title
+
+class Question(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    text = models.TextField("Câu hỏi")
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.text[:50]
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
+    text = models.CharField(max_length=255)
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.text
+    
+class QuizResult(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_results')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    score = models.IntegerField()  # Điểm số (ví dụ: 80)
+    total_questions = models.IntegerField()  # Tổng số câu hỏi
+    completed_at = models.DateTimeField(auto_now_add=True)
+    recommended_level = models.CharField(max_length=20, blank=True)  # Beginner, Intermediate, Advanced
+
+    class Meta:
+        unique_together = ('student', 'quiz')  # Một người chỉ làm quiz 1 lần
+
+    def __str__(self):
+        return f"{self.student.email} - {self.quiz.title} - {self.score}%"

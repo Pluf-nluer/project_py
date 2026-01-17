@@ -21,8 +21,13 @@ const HeroSection = () => {
           Giáo dục là <br /> con đường đến tương lai
         </h1>
         <div className="flex gap-4">
+<<<<<<< HEAD
           <Link 
             to="/courses" 
+=======
+          <Link
+            to="/courses"
+>>>>>>> 72f6e6fecca736b119a77c713c500855f63a017e
             className="bg-yellow-500 text-white px-8 py-4 rounded hover:bg-yellow-600 font-bold uppercase text-sm transition inline-block"
           >
             Xem các khóa học

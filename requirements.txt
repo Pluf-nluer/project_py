@@ -24,3 +24,4 @@ django-environ>=0.10.0
 
 # Trợ giúp dev
 python-decouple>=3.8  # nếu muốn dùng .env files
+

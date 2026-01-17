@@ -1,15 +1,52 @@
 import React, { useState, useEffect } from "react";
-import { useParams,useNavigate } from "react-router-dom"; // Lấy ID từ URL
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   FaStar, FaUsers, FaClock, FaBook, FaPlay, FaCheckCircle,
   FaFileAlt, FaGlobe, FaInfinity, FaCertificate,
   FaChevronDown, FaChevronUp, FaQuestionCircle, FaDownload,
+  // Import đầy đủ icon
   FaCalendarAlt, FaMapMarkerAlt, FaChalkboardTeacher, FaUserGraduate
 } from "react-icons/fa";
 import Header from "../components/Header";
 
-// Component con giữ nguyên logic hiển thị
+// Component con hiển thị từng chương (Section)
+const CourseSection = ({ section, index }) => {
+  const [isOpen, setIsOpen] = useState(index === 0); // Mở chương đầu tiên mặc định
+
+  return (
+    <div className="border border-gray-200 rounded-lg mb-4 overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition"
+      >
+        <div className="flex items-center gap-3 font-bold text-gray-800">
+          {isOpen ? <FaChevronUp /> : <FaChevronDown />}
+          {section.title}
+        </div>
+        <span className="text-sm text-gray-500">{section.lessons ? section.lessons.length : 0} bài học</span>
+      </button>
+      
+      {isOpen && (
+        <div className="bg-white border-t border-gray-200">
+          {section.lessons && section.lessons.map((lesson, idx) => (
+            <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 pl-10">
+              <div className="flex items-center gap-3 text-gray-700">
+                <FaPlay className="text-xs text-gray-400" />
+                <span>{lesson.title}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                 {lesson.is_preview && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Học thử</span>}
+                 <span className="text-xs text-gray-500">{lesson.duration}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,13 +64,14 @@ export default function CourseDetail() {
     const fetchCourseDetail = async () => {
       try {
         setLoading(true);
+        // 1. Lấy thông tin khóa học
         const response = await axios.get(`http://127.0.0.1:8000/api/courses/${id}/`);
         setCourse(response.data);
-        // --- GỌI API LẤY LỚP ---
-        console.log("Đang gọi API lấy lớp cho khóa:", id); // 1. Log ID
-        
+
+        // 2. Lấy danh sách lớp học
+        console.log("Đang gọi API lấy lớp cho khóa:", id);
         const classesRes = await axios.get(`http://127.0.0.1:8000/api/courses/course-classes/?course=${id}`);        
-        console.log("Kết quả API trả về:", classesRes.data); // 2. Log dữ liệu nhận được
+        console.log("Kết quả API trả về:", classesRes.data);
 
         // Xử lý phân trang (nếu có)
         const classesData = classesRes.data.results ? classesRes.data.results : classesRes.data;
@@ -47,7 +85,7 @@ export default function CourseDetail() {
     fetchCourseDetail();
   }, [id]);
 
-// --- HÀM XỬ LÝ ĐĂNG KÝ & CHECK TRÙNG LỊCH ---
+  // --- HÀM XỬ LÝ ĐĂNG KÝ & CHECK TRÙNG LỊCH ---
   const handleEnroll = async (classId) => {
     // Kiểm tra đăng nhập
     const token = localStorage.getItem("access_token");
@@ -64,8 +102,8 @@ export default function CourseDetail() {
 
     try {
         const response = await axios.post(
-           "http://127.0.0.1:8000/api/courses/enroll/",
-            { class_id: classId },
+            "http://127.0.0.1:8000/api/courses/enroll/",
+             { class_id: classId },
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -73,7 +111,7 @@ export default function CourseDetail() {
         setErrorType("success");
         setMessage("✅ " + (response.data.message || "Đăng ký thành công!"));
         
-        // Có thể reload lại danh sách lớp để cập nhật sĩ số
+        // Reload lại để cập nhật sĩ số
         window.location.reload(); 
 
     } catch (error) {
