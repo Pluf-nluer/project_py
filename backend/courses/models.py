@@ -181,9 +181,26 @@ class QuizResult(models.Model):
     total_questions = models.IntegerField()  # Tổng số câu hỏi
     completed_at = models.DateTimeField(auto_now_add=True)
     recommended_level = models.CharField(max_length=20, blank=True)  # Beginner, Intermediate, Advanced
-
+    details = models.JSONField(default=dict, verbose_name="Chi tiết làm bài (JSON)")
+    
     class Meta:
         unique_together = ('student', 'quiz')  # Một người chỉ làm quiz 1 lần
 
     def __str__(self):
         return f"{self.student.email} - {self.quiz.title} - {self.score}%"
+
+# Xác định tiến độ khóa học của một học viên để biết được học viên đó hoàn thành khóa học được bao nhiêu % hay nghỉ học cho khỏe thân
+class UserLessonProgress(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete = models.CASCADE,related_name="lesson_progress")
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    is_completed = models.BooleanField(default=False, verbose_name="Đã hoàn thành")
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian hoàn thành")
+    last_watched_position = models.IntegerField(default=0, verbose_name="Vị trí xem video (giây)")
+
+    class Meta:
+        unique_together = ('student', 'lesson')
+        verbose_name = "Tiến độ bài học"
+        verbose_name_plural = "Tiến độ bài học"
+    
+    def __str__(self):
+        return f"{self.student.username} - {self.lesson.title}"

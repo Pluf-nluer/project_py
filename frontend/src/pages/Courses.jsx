@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useCallback } from "react";
-=======
-import React, { useState, useEffect, useCallback  } from "react";
->>>>>>> 72f6e6fecca736b119a77c713c500855f63a017e
 import axios from "axios";
 import { FaSearch, FaUsers, FaStar } from "react-icons/fa";
 import { CiFilter, CiClock2 } from "react-icons/ci";
@@ -14,19 +10,12 @@ import CourseCard from "../components/CourseCard";
 function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-<<<<<<< HEAD
-  // --- THÊM STATE CHO PHÂN TRANG ---
+  
+  // --- STATE CHO PHÂN TRANG ---
   const [nextPage, setNextPage] = useState(null);
   const [prevPage, setPrevPage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-=======
-
-   // --- THÊM STATE CHO PHÂN TRANG ---
-  const [nextPage, setNextPage] = useState(null);
-  const [prevPage, setPrevPage] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-
->>>>>>> 72f6e6fecca736b119a77c713c500855f63a017e
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceFilter, setPriceFilter] = useState("All");
@@ -34,13 +23,7 @@ function Courses() {
 
   const categories = ["All", ...new Set(courses.map(c => c.category))];
 
-<<<<<<< HEAD
- // URL gốc của API
-=======
-
-
   // URL gốc của API
->>>>>>> 72f6e6fecca736b119a77c713c500855f63a017e
   const BASE_URL = "http://127.0.0.1:8000/api/courses/";
 
   // 1. Đưa hàm fetchCourses ra ngoài và dùng useCallback
@@ -54,11 +37,7 @@ function Courses() {
       setCourses(response.data.results);
       setNextPage(response.data.next);
       setPrevPage(response.data.previous);
-<<<<<<< HEAD
       
-=======
-
->>>>>>> 72f6e6fecca736b119a77c713c500855f63a017e
       // Cuộn lên đầu trang khi data tải xong
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
@@ -69,7 +48,7 @@ function Courses() {
     }
   }, []);
 
-// --- HÀM XÂY DỰNG URL VÀ GỌI API KHI BỘ LỌC THAY ĐỔI ---
+  // --- HÀM XÂY DỰNG URL VÀ GỌI API KHI BỘ LỌC THAY ĐỔI ---
   useEffect(() => {
     fetchCourses(BASE_URL);
   }, [fetchCourses]);
@@ -81,12 +60,7 @@ function Courses() {
       setCurrentPage((prev) => (direction === 'next' ? prev + 1 : prev - 1));
     }
   };
-<<<<<<< HEAD
   
-=======
-
-
->>>>>>> 72f6e6fecca736b119a77c713c500855f63a017e
   const handleRatingChange = (rating) => {
     setRatingFilters((prev) =>
       prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
@@ -125,11 +99,11 @@ function Courses() {
             <div className="bg-white rounded-2xl p-2 shadow-2xl max-w-2xl flex items-center">
                 <FaSearch className="text-gray-400 ml-4" size={20} />
                 <input 
-                 type="text" 
-                 placeholder="Tìm tên khóa học hoặc giảng viên..." 
-                 className="flex-1 p-3 outline-none text-black"
-                 value={searchTerm}
-                 onChange={(e) => setSearchTerm(e.target.value)}
+                  type="text" 
+                  placeholder="Tìm tên khóa học hoặc giảng viên..." 
+                  className="flex-1 p-3 outline-none text-black"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
           </div>
@@ -221,11 +195,7 @@ function Courses() {
                 >
                     ← Trang trước
                 </button>
-<<<<<<< HEAD
                 
-=======
-
->>>>>>> 72f6e6fecca736b119a77c713c500855f63a017e
                 <span className="text-gray-600 font-medium">Trang {currentPage}</span>
 
                 <button
