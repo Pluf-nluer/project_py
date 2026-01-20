@@ -13,7 +13,8 @@ from courses.views import (
     ChangePasswordView,
     MyEnrolledCoursesView,
     PlacementQuizView,
-    SubmitQuizView
+    SubmitQuizView,
+    admin_dashboard_stats
 )
 
 urlpatterns = [
@@ -29,6 +30,8 @@ urlpatterns = [
     path('my-courses/', MyEnrolledCoursesView.as_view(), name='my-enrolled-courses'),
     path('placement-quiz/', PlacementQuizView.as_view(), name='placement-quiz'),
     path('submit-quiz/', SubmitQuizView.as_view(), name='submit-quiz'),
+    path('admin/stats/', admin_dashboard_stats, name='admin-stats'),
+    
 ]
 
 # Cấu hình media (để hiển thị ảnh)
