@@ -5,7 +5,6 @@ import os
 # Đường dẫn gốc dự án
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --- DÒNG BẠN ĐANG THIẾU ---
 SECRET_KEY = 'django-insecure-my-secret-key-for-dev-environment-only'
 
 # Chế độ Dev (True)
@@ -22,16 +21,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-     'django_filters',
+    'django_filters',  # Đã gộp dòng này lại
     'core',
     'courses',
     'ai_engine',
-    "corsheaders",  
+    "corsheaders",
     'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', 
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -41,10 +40,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# File chứa URL chính (bạn vừa sửa lúc nãy)
 ROOT_URLCONF = 'backend_lms.urls'
 
-# Cấu hình giao diện (bạn vừa thêm lúc nãy)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -63,7 +60,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend_lms.wsgi.application'
 
-# Database (bạn vừa sửa lúc nãy)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -71,7 +67,6 @@ DATABASES = {
     }
 }
 
-# Các validator mật khẩu (để mặc định cũng được)
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -81,43 +76,38 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'courses.User'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'vi'  # Đã chọn Tiếng Việt
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# File tĩnh (bạn vừa thêm lúc nãy)
 STATIC_URL = 'static/'
-
-# Khóa chính mặc định (bạn vừa thêm lúc nãy)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173"
 ]
-LANGUAGE_CODE = 'vi'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-      # --- THÊM PHẦN NÀY ĐỂ PHÂN TRANG ---
+    # --- THÊM PHẦN NÀY ĐỂ PHÂN TRANG ---
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 6,  # Mỗi trang chỉ hiện 6 khóa học
-
+    
     # Mặc định ai cũng xem được (Read), nhưng muốn sửa (Write) thì phải đăng nhập
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 }
 
-# Tùy chọn: Tăng thời gian sống của access token (mặc định chỉ 5 phút)
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # 60 phút thay vì 5 phút
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
 }
-# Nơi lưu trữ file upload (ảnh, video, tài liệu)
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -1,37 +1,77 @@
 import React, { useState, useEffect } from "react";
-import { useParams ,useNavigate  } from "react-router-dom"; // Lấy ID từ URL
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   FaStar, FaUsers, FaClock, FaBook, FaPlay, FaCheckCircle,
   FaFileAlt, FaGlobe, FaInfinity, FaCertificate,
-  FaChevronDown, FaChevronUp, FaQuestionCircle, FaDownload, FaCalendarAlt, FaMapMarkerAlt, FaChalkboardTeacher, FaUserGraduate
+  FaChevronDown, FaChevronUp, FaQuestionCircle, FaDownload,
+  // Import đầy đủ icon
+  FaCalendarAlt, FaMapMarkerAlt, FaChalkboardTeacher, FaUserGraduate
 } from "react-icons/fa";
 import Header from "../components/Header";
 
-// Component con giữ nguyên logic hiển thị
+// Component con hiển thị từng chương (Section)
+const CourseSection = ({ section, index }) => {
+  const [isOpen, setIsOpen] = useState(index === 0); // Mở chương đầu tiên mặc định
+
+  return (
+    <div className="border border-gray-200 rounded-lg mb-4 overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition"
+      >
+        <div className="flex items-center gap-3 font-bold text-gray-800">
+          {isOpen ? <FaChevronUp /> : <FaChevronDown />}
+          {section.title}
+        </div>
+        <span className="text-sm text-gray-500">{section.lessons ? section.lessons.length : 0} bài học</span>
+      </button>
+      
+      {isOpen && (
+        <div className="bg-white border-t border-gray-200">
+          {section.lessons && section.lessons.map((lesson, idx) => (
+            <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 pl-10">
+              <div className="flex items-center gap-3 text-gray-700">
+                <FaPlay className="text-xs text-gray-400" />
+                <span>{lesson.title}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                 {lesson.is_preview && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Học thử</span>}
+                 <span className="text-xs text-gray-500">{lesson.duration}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [classes, setClasses] = useState([]); // State lưu danh sách lớp học phần
+
   const [course, setCourse] = useState(null);
+  const [classes, setClasses] = useState([]); // State lưu danh sách lớp học phần
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
-    // --- STATE XỬ LÝ ĐĂNG KÝ ---
+  // --- STATE XỬ LÝ ĐĂNG KÝ ---
   const [message, setMessage] = useState(null);     // Nội dung thông báo
   const [errorType, setErrorType] = useState("");   // Loại lỗi: 'success', 'conflict', 'error'
-
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
       try {
-          setLoading(true);
+        setLoading(true);
+        // 1. Lấy thông tin khóa học
         const response = await axios.get(`http://127.0.0.1:8000/api/courses/${id}/`);
         setCourse(response.data);
-        console.log("Đang gọi API lấy lớp cho khóa:", id); // 1. Log ID
 
-        const classesRes = await axios.get(`http://127.0.0.1:8000/api/courses/course-classes/?course=${id}`);
-        console.log("Kết quả API trả về:", classesRes.data); // 2. Log dữ liệu nhận được
+        // 2. Lấy danh sách lớp học
+        console.log("Đang gọi API lấy lớp cho khóa:", id);
+        const classesRes = await axios.get(`http://127.0.0.1:8000/api/courses/course-classes/?course=${id}`);        
+        console.log("Kết quả API trả về:", classesRes.data);
 
         // Xử lý phân trang (nếu có)
         const classesData = classesRes.data.results ? classesRes.data.results : classesRes.data;
@@ -51,7 +91,7 @@ export default function CourseDetail() {
     const token = localStorage.getItem("access_token");
     if (!token) {
         if(window.confirm("Bạn cần đăng nhập để đăng ký. Chuyển đến trang đăng nhập?")) {
-            navigate("/login");
+            navigate("/login"); 
         }
         return;
     }
@@ -62,17 +102,17 @@ export default function CourseDetail() {
 
     try {
         const response = await axios.post(
-           "http://127.0.0.1:8000/api/courses/enroll/",
-            { class_id: classId },
+            "http://127.0.0.1:8000/api/courses/enroll/",
+             { class_id: classId },
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
         // Thành công
         setErrorType("success");
         setMessage("✅ " + (response.data.message || "Đăng ký thành công!"));
-
-        // Có thể reload lại danh sách lớp để cập nhật sĩ số
-        window.location.reload();
+        
+        // Reload lại để cập nhật sĩ số
+        window.location.reload(); 
 
     } catch (error) {
         if (error.response) {
@@ -83,12 +123,12 @@ export default function CourseDetail() {
             if (status === 409) {
                 setErrorType("conflict");
                 setMessage(`⚠️ CẢNH BÁO TRÙNG LỊCH: ${errorData.error}`);
-            }
+            } 
             // Lỗi chưa đủ điều kiện tiên quyết hoặc đã học rồi
             else if (status === 400) {
                 setErrorType("error");
                 setMessage(`❌ Không thể đăng ký: ${errorData.error}`);
-            }
+            } 
             else {
                 setErrorType("error");
                 setMessage("Lỗi hệ thống, vui lòng thử lại sau.");
@@ -97,12 +137,10 @@ export default function CourseDetail() {
     }
   };
 
-
   if (loading) return <div className="text-center py-20 font-bold">Đang tải dữ liệu...</div>;
   if (!course) return <div className="text-center py-20">Không tìm thấy khóa học.</div>;
 
-
-      // Cuộn xuống danh sách lớp
+  // Cuộn xuống danh sách lớp
   const scrollToClasses = () => {
     const element = document.getElementById("class-list-section");
     if (element) {
@@ -122,15 +160,6 @@ export default function CourseDetail() {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
         <div className="container mx-auto px-6 lg:px-10 py-12">
-             {/* --- KHU VỰC THÔNG BÁO KẾT QUẢ ĐĂNG KÝ --- */}
-        {message && (
-            <div className={`p-4 mb-8 rounded-lg text-white font-bold text-center text-lg shadow-md animate-bounce-short ${
-                errorType === 'success' ? 'bg-green-600' : 
-                errorType === 'conflict' ? 'bg-orange-500' : 'bg-red-600'
-            }`}>
-                {message}
-            </div>
-        )}
           <div className="max-w-4xl">
             <div className="flex gap-2 mb-4">
               <span className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold uppercase">
@@ -161,6 +190,15 @@ export default function CourseDetail() {
       </div>
 
       <div className="container mx-auto px-6 lg:px-10 py-12">
+        {/* --- KHU VỰC THÔNG BÁO KẾT QUẢ ĐĂNG KÝ --- */}
+        {message && (
+            <div className={`p-4 mb-8 rounded-lg text-white font-bold text-center text-lg shadow-md animate-bounce-short ${
+                errorType === 'success' ? 'bg-green-600' : 
+                errorType === 'conflict' ? 'bg-orange-500' : 'bg-red-600'
+            }`}>
+                {message}
+            </div>
+        )}
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             
@@ -178,12 +216,13 @@ export default function CourseDetail() {
                 </div>
               </div>
             )}
-             {/* --- DANH SÁCH LỚP HỌC PHẦN --- */}
+
+            {/* --- DANH SÁCH LỚP HỌC PHẦN --- */}
             <div id="class-list-section" className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
                 <h2 className="text-2xl font-bold mb-6 border-l-4 border-blue-600 pl-3">
                     Lịch mở lớp ({classes.length})
                 </h2>
-
+                
                 <div className="space-y-4">
                     {classes.length > 0 ? classes.map(cls => (
                         <div key={cls.id} className="border border-gray-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition bg-gray-50">
@@ -197,7 +236,7 @@ export default function CourseDetail() {
                                         <p className="flex items-center gap-2"><FaUserGraduate className="text-green-600"/> <strong>Sĩ số:</strong> {cls.current_enrollment} / {cls.max_capacity}</p>
                                     </div>
                                 </div>
-                                <button
+                                <button 
                                     onClick={() => handleEnroll(cls.id)}
                                     disabled={cls.current_enrollment >= cls.max_capacity}
                                     className={`px-6 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition ${
@@ -215,6 +254,7 @@ export default function CourseDetail() {
                     )}
                 </div>
             </div>
+
             {/* Tabs */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="flex border-b border-gray-200 bg-gray-50">
@@ -283,8 +323,10 @@ export default function CourseDetail() {
                 <div className="text-3xl font-bold text-gray-900 mb-6">
                   {parseFloat(course.price) === 0 ? "Miễn phí" : formatPrice(course.price)}
                 </div>
-                <button onClick={scrollToClasses} className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200">
-                  Đăng ký ngay
+                <button
+                onClick={scrollToClasses}
+                className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                Đăng ký ngay
                 </button>
                 
                 <div className="mt-8">
