@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams ,useNavigate  } from "react-router-dom"; // Lấy ID từ URL
 import axios from "axios";
 import {
-  FaStar, FaUsers, FaClock, FaBook, FaPlay, FaCheckCircle,
-  FaFileAlt, FaGlobe, FaInfinity, FaCertificate,
-  FaChevronDown, FaChevronUp, FaQuestionCircle, FaDownload, FaCalendarAlt, FaMapMarkerAlt, FaChalkboardTeacher, FaUserGraduate
+  FaStar, FaClock, FaBook, FaPlay, FaCheckCircle,
+ FaGlobe,  FaCertificate,
+ FaQuestionCircle, FaDownload, FaCalendarAlt, FaMapMarkerAlt, FaChalkboardTeacher, FaUserGraduate
 } from "react-icons/fa";
 import Header from "../components/Header";
 

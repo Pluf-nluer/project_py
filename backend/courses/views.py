@@ -1,12 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Count, Avg
 from rest_framework import generics, status, viewsets,filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated,IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from courses.models import CourseClass, Enrollment, WaitingList, Course
+from courses.models import CourseClass, Enrollment, WaitingList, Course, UserLessonProgress
 from courses.services import check_prerequisites, check_schedule_conflict
 from courses.serializers import (
     CourseClassSerializer,
@@ -224,3 +226,46 @@ class SubmitQuizView(APIView):
             "level": level,
             "recommended_courses": course_serializer.data
         })
+# 8. API THỐNG KÊ DASHBOARD (Dành cho Admin)
+@api_view(['GET'])
+@permission_classes([AllowAny]) # test (sau này sửa thành IsAdminUser)
+def admin_dashboard_stats(request):
+    """
+    API trả về toàn bộ số liệu để vẽ biểu đồ Dashboard
+    """
+    # 1. Số liệu tổng quan
+    total_students = User.objects.filter(role='student').count()
+    total_courses = Course.objects.count()
+    total_enrollments = Enrollment.objects.count()
+
+    # Điểm trung bình tất cả bài thi
+    avg_score_data = QuizResult.objects.aggregate(Avg('score'))
+    avg_quiz_score = avg_score_data['score__avg'] or 0
+
+    # 2. Top khóa học hot nhất (Biểu đồ cột)
+    # Đếm số lượng học viên trong các lớp thuộc khóa học đó
+    courses_stats = Course.objects.annotate(
+        student_count=Count('classes__enrollments')
+    ).values('title', 'student_count').order_by('-student_count')[:5]
+
+    chart_labels = [item['title'] for item in courses_stats]
+    chart_data = [item['student_count'] for item in courses_stats]
+
+    # 3. Phân loại trình độ học viên (Biểu đồ tròn)
+    level_stats = QuizResult.objects.values('recommended_level').annotate(
+        count=Count('id')
+    )
+
+    return Response({
+        "overview": {
+            "total_students": total_students,
+            "total_courses": total_courses,
+            "total_enrollments": total_enrollments,
+            "avg_quiz_score": round(avg_quiz_score, 1)
+        },
+        "top_courses": {
+            "labels": chart_labels,
+            "data": chart_data
+        },
+        "student_levels": list(level_stats)
+    })

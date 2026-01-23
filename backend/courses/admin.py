@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Course, CourseClass, Enrollment, WaitingList, Module, Lesson, User
-from .models import Quiz, Question, Choice, QuizResult
+from .models import Quiz, Question, Choice, QuizResult, UserLessonProgress
 
 
 # --- 0. QUẢN LÝ USER (BẮT BUỘC THÊM) ---
@@ -111,3 +111,10 @@ class QuizResultAdmin(admin.ModelAdmin):
     list_display = ('student', 'quiz', 'score', 'recommended_level', 'completed_at')
     list_filter = ('recommended_level', 'quiz')
     readonly_fields = ('completed_at',)
+    
+# Đăng ký bảng Tiến độ bài học
+@admin.register(UserLessonProgress)
+class UserLessonProgressAdmin(admin.ModelAdmin):
+    list_display = ('student', 'lesson', 'is_completed', 'completed_at')
+    list_filter = ('is_completed', 'lesson__module__course') # Lọc theo trạng thái và Khóa học
+    search_fields = ('student__email', 'lesson__title')

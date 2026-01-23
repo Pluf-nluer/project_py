@@ -41,6 +41,7 @@ def train_and_visualize():
     model = SVD(n_factors=50, n_epochs=20, lr_all=0.005)
 
     # Chạy CV để in ra bảng RMSE, MAE trong terminal
+    #chia dữ liệu thành các phần nhỏ để kiểm tra xem AI dự đoán có chính xác không
     cv_results = cross_validate(model, data, measures=['RMSE', 'MAE'], cv=5, verbose=True)
 
     # --- BƯỚC 3: HUẤN LUYỆN CHÍNH THỨC ---

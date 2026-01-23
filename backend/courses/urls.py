@@ -4,9 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from courses.views import EnrollClassView, CourseClassListView, CourseListView, CourseDetailView, UserProfileView
 from courses.views import get_popular_courses
-from courses.views import ChangePasswordView
+from courses.views import ChangePasswordView, RegisterView
 from courses.views import MyEnrolledCoursesView
-from courses.views import PlacementQuizView, SubmitQuizView
+from courses.views import PlacementQuizView, SubmitQuizView, admin_dashboard_stats
 # Import view đăng ký từ courses.views
 from courses.views import RegisterView
 
@@ -23,6 +23,7 @@ urlpatterns = [
     path('placement-quiz/', PlacementQuizView.as_view(), name='placement-quiz'),
     path('submit-quiz/', SubmitQuizView.as_view(), name='submit-quiz'),
     path('course-classes/', CourseClassListView.as_view(), name='course-class-list'),
+    path('admin/stats/', admin_dashboard_stats, name='admin-stats'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
