@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+import random
 
 class Course(models.Model):
     title = models.CharField(max_length=255, verbose_name="Tên khóa học")
@@ -204,3 +205,239 @@ class UserLessonProgress(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.lesson.title}"
+
+# 7. BÀI KIỂM TRA CHO TỪNG KHÓA HỌC
+class CourseQuiz(models.Model):
+    """Bài kiểm tra thuộc về một khóa học cụ thể"""
+    course = models.ForeignKey(
+        Course, 
+        on_delete=models.CASCADE, 
+        related_name='quizzes',
+        verbose_name="Khóa học"
+    )
+    title = models.CharField(max_length=255, verbose_name="Tên bài kiểm tra")
+    description = models.TextField(blank=True, verbose_name="Mô tả")
+    
+    # Cấu hình thời gian
+    time_limit = models.IntegerField(
+        default=30, 
+        verbose_name="Thời gian làm bài (phút)"
+    )
+    
+    # Cấu hình điểm và đánh giá
+    passing_score = models.IntegerField(
+        default=70, 
+        verbose_name="Điểm đạt tối thiểu (%)"
+    )
+    max_attempts = models.IntegerField(
+        default=3, 
+        verbose_name="Số lần làm tối đa"
+    )
+    
+    # Cấu hình hiển thị
+    shuffle_questions = models.BooleanField(
+        default=True, 
+        verbose_name="Trộn câu hỏi"
+    )
+    shuffle_choices = models.BooleanField(
+        default=True, 
+        verbose_name="Trộn đáp án"
+    )
+    show_correct_answers = models.BooleanField(
+        default=True,
+        verbose_name="Hiển thị đáp án đúng sau khi nộp"
+    )
+    
+    is_active = models.BooleanField(default=True, verbose_name="Đang hoạt động")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Bài kiểm tra khóa học"
+        verbose_name_plural = "Bài kiểm tra khóa học"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.course.title} - {self.title}"
+
+    def get_total_questions(self):
+        """Tổng số câu hỏi"""
+        return self.quiz_questions.count()
+
+    def get_total_points(self):
+        """Tổng điểm của bài kiểm tra"""
+        return sum(q.points for q in self.quiz_questions.all())
+
+
+class CourseQuizQuestion(models.Model):
+    """Câu hỏi trong bài kiểm tra"""
+    quiz = models.ForeignKey(
+        CourseQuiz, 
+        on_delete=models.CASCADE, 
+        related_name='quiz_questions',
+        verbose_name="Bài kiểm tra"
+    )
+    question_text = models.TextField(verbose_name="Nội dung câu hỏi")
+    explanation = models.TextField(
+        blank=True, 
+        verbose_name="Giải thích đáp án"
+    )
+    points = models.IntegerField(default=1, verbose_name="Điểm số")
+    order = models.PositiveIntegerField(default=0, verbose_name="Thứ tự")
+
+    class Meta:
+        verbose_name = "Câu hỏi"
+        verbose_name_plural = "Câu hỏi"
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.question_text[:50]
+
+
+class CourseQuizChoice(models.Model):
+    """Lựa chọn cho mỗi câu hỏi"""
+    question = models.ForeignKey(
+        CourseQuizQuestion, 
+        on_delete=models.CASCADE, 
+        related_name='choices',
+        verbose_name="Câu hỏi"
+    )
+    choice_text = models.CharField(max_length=500, verbose_name="Nội dung đáp án")
+    is_correct = models.BooleanField(default=False, verbose_name="Đáp án đúng")
+    order = models.PositiveIntegerField(default=0, verbose_name="Thứ tự")
+
+    class Meta:
+        verbose_name = "Đáp án"
+        verbose_name_plural = "Đáp án"
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.choice_text[:30]} ({'✓' if self.is_correct else '✗'})"
+
+
+class CourseQuizAttempt(models.Model):
+    """Lưu trữ từng lần làm bài của học viên"""
+    STATUS_CHOICES = (
+        ('IN_PROGRESS', 'Đang làm'),
+        ('SUBMITTED', 'Đã nộp'),
+        ('TIME_UP', 'Hết giờ'),
+    )
+    
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='quiz_attempts',
+        verbose_name="Học viên"
+    )
+    quiz = models.ForeignKey(
+        CourseQuiz,
+        on_delete=models.CASCADE,
+        related_name='attempts',
+        verbose_name="Bài kiểm tra"
+    )
+    
+    # Thông tin thời gian
+    started_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    time_spent = models.IntegerField(
+        default=0, 
+        verbose_name="Thời gian làm (giây)"
+    )
+    
+    # Kết quả
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='IN_PROGRESS'
+    )
+    score = models.FloatField(default=0, verbose_name="Điểm số")
+    total_points = models.IntegerField(default=0)
+    correct_answers = models.IntegerField(default=0)
+    total_questions = models.IntegerField(default=0)
+    
+    # Thứ tự câu hỏi đã được trộn (lưu dạng JSON)
+    question_order = models.JSONField(
+        default=list,
+        verbose_name="Thứ tự câu hỏi đã trộn"
+    )
+    
+    # Thứ tự đáp án đã trộn cho từng câu hỏi
+    choice_orders = models.JSONField(
+        default=dict,
+        verbose_name="Thứ tự đáp án đã trộn"
+    )
+
+    class Meta:
+        verbose_name = "Lần làm bài"
+        verbose_name_plural = "Lịch sử làm bài"
+        ordering = ['-started_at']
+
+    def __str__(self):
+        return f"{self.student.email} - {self.quiz.title} - {self.started_at}"
+
+    def is_passed(self):
+        """Kiểm tra có đạt điểm tối thiểu không"""
+        percentage = (self.score / self.total_points * 100) if self.total_points > 0 else 0
+        return percentage >= self.quiz.passing_score
+
+    def get_percentage(self):
+        """Tính phần trăm điểm"""
+        if self.total_points == 0:
+            return 0
+        return round((self.score / self.total_points) * 100, 1)
+
+    def initialize_question_order(self):
+        """Khởi tạo thứ tự câu hỏi ngẫu nhiên khi bắt đầu làm bài"""
+        questions = list(self.quiz.quiz_questions.values_list('id', flat=True))
+        
+        if self.quiz.shuffle_questions:
+            random.shuffle(questions)
+        
+        self.question_order = questions
+        
+        # Khởi tạo thứ tự đáp án cho từng câu hỏi
+        if self.quiz.shuffle_choices:
+            choice_orders = {}
+            for q_id in questions:
+                choices = list(
+                    CourseQuizChoice.objects.filter(question_id=q_id)
+                    .values_list('id', flat=True)
+                )
+                random.shuffle(choices)
+                choice_orders[str(q_id)] = choices
+            self.choice_orders = choice_orders
+        
+        self.save()
+
+
+class CourseQuizAnswer(models.Model):
+    """Lưu câu trả lời của học viên cho mỗi câu hỏi"""
+    attempt = models.ForeignKey(
+        CourseQuizAttempt,
+        on_delete=models.CASCADE,
+        related_name='answers',
+        verbose_name="Lần làm bài"
+    )
+    question = models.ForeignKey(
+        CourseQuizQuestion,
+        on_delete=models.CASCADE,
+        verbose_name="Câu hỏi"
+    )
+    selected_choice = models.ForeignKey(
+        CourseQuizChoice,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name="Đáp án đã chọn"
+    )
+    is_correct = models.BooleanField(default=False)
+    points_earned = models.FloatField(default=0)
+    answered_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Câu trả lời"
+        verbose_name_plural = "Câu trả lời"
+        unique_together = ('attempt', 'question')
+
+    def __str__(self):
+        return f"Q{self.question.id} - {'✓' if self.is_correct else '✗'}"
