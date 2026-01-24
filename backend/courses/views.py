@@ -181,60 +181,6 @@ class PlacementQuizView(APIView):
         serializer = QuizSerializer(quiz)
         return Response(serializer.data)
 
-class SubmitQuizView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        serializer = QuizSubmitSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
-
-        answers = serializer.validated_data['answers']
-        quiz = Quiz.objects.filter(is_active=True).first()
-        if not quiz:
-            return Response({"error": "Không tìm thấy bài kiểm tra"}, status=404)
-
-        questions = quiz.questions.all()
-        correct_count = 0
-
-        for question in questions:
-            selected_choice_id = answers.get(str(question.id))
-            if selected_choice_id:
-                choice = question.choices.filter(id=selected_choice_id, is_correct=True).exists()
-                if choice:
-                    correct_count += 1
-
-        score = int((correct_count / questions.count()) * 100) if questions.count() > 0 else 0
-
-        # Xác định trình độ
-        if score < 40:
-            level = "Beginner"
-        elif score < 70:
-            level = "Intermediate"
-        else:
-            level = "Advanced"
-
-        # Lưu kết quả
-        QuizResult.objects.update_or_create(
-            student=request.user,
-            quiz=quiz,
-            defaults={
-                'score': score,
-                'total_questions': questions.count(),
-                'recommended_level': level
-            }
-        )
-
-        # Gợi ý khóa học theo level (bạn có thể thêm field level vào Course)
-        recommended_courses = Course.objects.filter(category__icontains=level.lower())[:6]
-        course_serializer = CourseSerializer(recommended_courses, many=True)
-
-        return Response({
-            "score": score,
-            "total": questions.count(),
-            "level": level,
-            "recommended_courses": course_serializer.data
-        })
 # 8. API THỐNG KÊ DASHBOARD (Dành cho Admin)
 @api_view(['GET'])
 @permission_classes([AllowAny]) # test (sau này sửa thành IsAdminUser)
@@ -460,57 +406,6 @@ class SubmitAnswerView(APIView):
         attempt.correct_answers = correct_count
 
 
-class StartQuizView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, quiz_id):
-        user = request.user
-        quiz = get_object_or_404(CourseQuiz, id=quiz_id, is_active=True)
-
-        # Kiểm tra lượt còn lại
-        attempts_count = CourseQuizAttempt.objects.filter(
-            student=user, quiz=quiz, status='SUBMITTED'
-        ).count()
-
-        if attempts_count >= quiz.max_attempts:
-            return Response({"error": f"Hết lượt làm bài (tối đa {quiz.max_attempts} lần)."}, status=400)
-
-        # Tìm attempt đang làm dở
-        ongoing = CourseQuizAttempt.objects.filter(
-            student=user, quiz=quiz, status='IN_PROGRESS'
-        ).first()
-
-        if ongoing:
-            # Kiểm tra hết giờ
-            time_limit_seconds = quiz.time_limit * 60
-            elapsed = (timezone.now() - ongoing.started_at).total_seconds()
-
-            if elapsed >= time_limit_seconds:
-                # Tự động nộp
-                ongoing.status = 'TIME_UP'
-                ongoing.submitted_at = timezone.now()
-                ongoing.time_spent = int(elapsed)
-                # Tính điểm...
-                ongoing.save()
-                return Response({"error": "Bài trước đã hết giờ và được tự động nộp.", "attempt_id": ongoing.id}, status=400)
-
-            # Trả về attempt đang làm
-            serializer = CourseQuizAttemptSerializer(ongoing)
-            return Response(serializer.data, status=200)
-
-        # Tạo mới
-        with transaction.atomic():
-            attempt = CourseQuizAttempt.objects.create(
-                student=user,
-                quiz=quiz,
-                total_questions=quiz.get_total_questions(),
-                total_points=quiz.get_total_points()
-            )
-            attempt.initialize_question_order()
-            serializer = CourseQuizAttemptSerializer(attempt)
-            return Response(serializer.data, status=201)
-
-
 class QuizResultView(generics.RetrieveAPIView):
     """Xem kết quả bài kiểm tra"""
     serializer_class = CourseQuizAttemptSerializer
@@ -576,142 +471,66 @@ class CheckTimeView(APIView):
 
 # 10. Nộp bài kiểm tra
 class SubmitQuizView(APIView):
-    """Nộp toàn bộ bài kiểm tra"""
+    """View duy nhất xử lý nộp bài cho mọi loại Quiz"""
     permission_classes = [IsAuthenticated]
-    
-    def post(self, request, attempt_id):
-        """
-        Nộp bài kiểm tra
-        URL: POST /api/courses/quiz-attempts/{attempt_id}/submit/
-        """
-        print(f"\n{'='*50}")
-        print(f"🔵 BẮT ĐẦU NỘP BÀI - Attempt ID: {attempt_id}")
-        print(f"{'='*50}")
-        
-        try:
-            # 1. Lấy attempt
-            attempt = get_object_or_404(
-                CourseQuizAttempt,
-                id=attempt_id,
-                student=request.user
-            )
-            
-            print(f"✅ Tìm thấy attempt: {attempt.id}")
-            print(f"   - Quiz: {attempt.quiz.title}")
-            print(f"   - Status hiện tại: {attempt.status}")
-            print(f"   - Thời gian bắt đầu: {attempt.started_at}")
-            
-            # 2. Kiểm tra trạng thái
-            if attempt.status != 'IN_PROGRESS':
-                error_msg = f"Bài kiểm tra đã được nộp trước đó (Trạng thái: {attempt.get_status_display()})"
-                print(f"❌ LỖI: {error_msg}")
-                return Response(
-                    {
-                        "error": error_msg,
-                        "status": attempt.status,
-                        "detail": "Bài kiểm tra này đã kết thúc. Vui lòng làm bài mới hoặc xem kết quả."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            # 3. Kiểm tra thời gian
-            time_limit_seconds = attempt.quiz.time_limit * 60
-            elapsed = (timezone.now() - attempt.started_at).total_seconds()
-            
-            print(f"⏱️  Thời gian:")
-            print(f"   - Giới hạn: {time_limit_seconds}s ({attempt.quiz.time_limit} phút)")
-            print(f"   - Đã trôi qua: {int(elapsed)}s")
-            print(f"   - Còn lại: {int(time_limit_seconds - elapsed)}s")
-            
-            # Nếu hết giờ, đánh dấu TIME_UP
-            if elapsed >= time_limit_seconds:
-                print("⚠️  ĐÃ HẾT GIỜ - Chuyển sang TIME_UP")
-                attempt.status = 'TIME_UP'
-            else:
-                attempt.status = 'SUBMITTED'
-            
-            # 4. Lưu thời gian nộp bài
-            attempt.submitted_at = timezone.now()
-            attempt.time_spent = int(elapsed)
-            
-            # 5. Tính điểm
-            print(f"\n📊 TÍNH ĐIỂM:")
-            answers = attempt.answers.all()
-            print(f"   - Tổng số câu đã trả lời: {answers.count()}")
-            
-            total_score = 0
-            correct_count = 0
-            
-            for answer in answers:
-                if answer.is_correct:
-                    total_score += answer.points_earned
-                    correct_count += 1
-                    print(f"   ✅ Câu {answer.question.id}: +{answer.points_earned} điểm")
-                else:
-                    print(f"   ❌ Câu {answer.question.id}: 0 điểm")
-            
-            attempt.score = total_score
-            attempt.correct_answers = correct_count
-            
-            print(f"\n🎯 KẾT QUẢ CUỐI CÙNG:")
-            print(f"   - Điểm: {attempt.score}/{attempt.total_points}")
-            print(f"   - Số câu đúng: {attempt.correct_answers}/{attempt.total_questions}")
-            print(f"   - Phần trăm: {attempt.get_percentage()}%")
-            print(f"   - Kết quả: {'ĐẠT' if attempt.is_passed() else 'CHƯA ĐẠT'}")
-            
-            # 6. Lưu vào database
-            attempt.save()
-            print(f"\n💾 ĐÃ LƯU VÀO DATABASE")
-            
-            # 7. Trả về kết quả
-            serializer = CourseQuizAttemptSerializer(attempt)
-            
-            response_data = {
-                "success": True,
-                "message": "✅ Nộp bài thành công!",
-                "result": serializer.data,
-                "summary": {
-                    "score": attempt.score,
-                    "total_points": attempt.total_points,
-                    "percentage": attempt.get_percentage(),
-                    "passed": attempt.is_passed(),
-                    "correct_answers": attempt.correct_answers,
-                    "total_questions": attempt.total_questions,
-                    "time_spent_seconds": attempt.time_spent,
-                    "status": attempt.status
-                }
-            }
-            
-            print(f"\n{'='*50}")
-            print(f"✅ NỘP BÀI THÀNH CÔNG")
-            print(f"{'='*50}\n")
-            
-            return Response(response_data, status=status.HTTP_200_OK)
-            
-        except CourseQuizAttempt.DoesNotExist:
-            print(f"❌ KHÔNG TÌM THẤY ATTEMPT ID: {attempt_id}")
-            return Response(
-                {
-                    "error": "Không tìm thấy bài kiểm tra",
-                    "detail": "Bài kiểm tra này không tồn tại hoặc không thuộc về bạn."
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-            
-        except Exception as e:
-            print(f"\n❌ LỖI KHÔNG MONG MUỐN:")
-            print(f"   {type(e).__name__}: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            
-            return Response(
-                {
-                    "error": "Có lỗi xảy ra khi nộp bài",
-                    "detail": str(e)
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
+    def post(self, request, attempt_id):
+        # 1. Lấy bản ghi lượt làm bài
+        attempt = get_object_or_404(
+            CourseQuizAttempt,
+            id=attempt_id,
+            student=request.user,
+            status='IN_PROGRESS'  # Chỉ cho nộp nếu đang làm
+        )
+
+        quiz = attempt.quiz
+
+        # 2. Tính toán thời gian và trạng thái
+        elapsed = (timezone.now() - attempt.started_at).total_seconds()
+        attempt.time_spent = int(elapsed)
+        attempt.submitted_at = timezone.now()
+
+        if elapsed > (quiz.time_limit * 60 + 30):  # bù 30s delay
+            attempt.status = 'TIME_UP'
+        else:
+            attempt.status = 'SUBMITTED'
+
+        # 3. Tính điểm từ các câu trả lời đã lưu trong CourseQuizAnswer
+        answers = attempt.answers.all()
+        total_score = sum(a.points_earned for a in answers)
+        correct_count = sum(1 for a in answers if a.is_correct)
+
+        attempt.score = total_score
+        attempt.correct_answers = correct_count
+        attempt.save()
+
+        # 4. Logic phản hồi tùy biến
+        serializer = CourseQuizAttemptSerializer(attempt)
+        response_data = {
+            "success": True,
+            "result": serializer.data,
+            "summary": {
+                "score_percentage": attempt.get_percentage(),
+                "is_passed": attempt.is_passed()
+            }
+        }
+
+        # Nếu là bài test đầu vào -> Thêm gợi ý trình độ
+        if quiz.quiz_type == 'PLACEMENT':
+            percentage = attempt.get_percentage()
+            if percentage < 40:
+                level = "Beginner"
+            elif percentage < 75:
+                level = "Intermediate"
+            else:
+                level = "Advanced"
+
+            response_data["summary"]["recommended_level"] = level
+            # Gợi ý khóa học (giả sử model Course có field level)
+            recommended = Course.objects.filter(category__icontains=level.lower())[:4]
+            response_data["recommended_courses"] = CourseSerializer(recommended, many=True).data
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

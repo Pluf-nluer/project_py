@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Course, CourseClass, Enrollment, WaitingList, Module, Lesson, User
+from .models import Course, CourseClass, Enrollment, WaitingList, Module, Lesson, User, UserInterest
 from .models import Quiz, Question, Choice, QuizResult, UserLessonProgress
 from .models import CourseQuiz, CourseQuizQuestion, CourseQuizChoice, CourseQuizAttempt, CourseQuizAnswer
 
@@ -236,3 +236,9 @@ class CourseQuizAnswerAdmin(admin.ModelAdmin):
     def question_short(self, obj):
         return obj.question.question_text[:50]
     question_short.short_description = "Câu hỏi"
+
+@admin.register(UserInterest)
+class UserInterestAdmin(admin.ModelAdmin):
+    # student__email vì model User của bạn dùng email làm định danh chính
+    list_display = ('user', 'is_surveyed', 'tags')
+    search_fields = ('user__email',)
