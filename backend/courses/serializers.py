@@ -301,3 +301,17 @@ class SubmitQuizSerializer(serializers.Serializer):
         child=SubmitAnswerSerializer(),
         allow_empty=True
     )
+
+class CourseDetailSerializer(serializers.ModelSerializer):
+    is_enrolled = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Course
+        fields = '__all__'  # Đảm bảo có is_enrolled trong này
+
+    def get_is_enrolled(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            # Kiểm tra xem user đã đăng ký bất kỳ lớp nào của khóa học này chưa
+            return Enrollment.objects.filter(user=user, course_class__course=obj).exists()
+        return False

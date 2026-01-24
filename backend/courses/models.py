@@ -441,3 +441,8 @@ class CourseQuizAnswer(models.Model):
 
     def __str__(self):
         return f"Q{self.question.id} - {'✓' if self.is_correct else '✗'}"
+
+class UserInterest(models.Model):
+    user = models.OneToOneField(User, related_name='interest', on_delete=models.CASCADE)
+    tags = models.JSONField(default=list) # Lưu ['python', 'ai', 'algorithm']
+    is_surveyed = models.BooleanField(default=False)

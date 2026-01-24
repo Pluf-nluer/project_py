@@ -2,6 +2,8 @@ from django.urls import path
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
+
+from courses import views
 from courses.views import EnrollClassView, CourseClassListView, CourseListView, CourseDetailView, UserProfileView
 from courses.views import get_popular_courses
 from courses.views import ChangePasswordView, RegisterView
@@ -27,6 +29,7 @@ urlpatterns = [
     path('course-classes/', CourseClassListView.as_view(), name='course-class-list'),
     path('admin/stats/', admin_dashboard_stats, name='admin-stats'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('save-interests/', views.save_user_interests, name='save_interests'),
         # Danh sách bài kiểm tra của một khóa học
     path(
         'courses/<int:course_id>/quizzes/', 

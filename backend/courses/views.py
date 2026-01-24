@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated,IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from courses.models import CourseClass, Enrollment, WaitingList, Course, UserLessonProgress
+from courses.models import CourseClass, Enrollment, WaitingList, Course, UserLessonProgress, UserInterest
 from courses.services import check_prerequisites, check_schedule_conflict
 from courses.serializers import (
     CourseClassSerializer,
@@ -711,3 +711,16 @@ class SubmitQuizView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_user_interests(request):
+    tags = request.data.get('tags', [])
+    # Cập nhật hoặc tạo mới sở thích của user
+    interest, created = UserInterest.objects.get_or_create(user=request.user)
+    interest.tags = tags
+    interest.is_surveyed = True
+    interest.save()
+
+    return Response({"message": "Đã lưu sở thích thành công!"})
