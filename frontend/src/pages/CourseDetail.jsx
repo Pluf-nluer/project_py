@@ -460,6 +460,38 @@ export default function CourseDetail() {
                               <p className="text-xs text-gray-500 mb-3 italic">
                                 Khai giảng: {cls.start_date}
                               </p>
+                              {(() => {
+                                try {
+                                  const scheduleArray =
+                                    typeof cls.schedule === "string"
+                                      ? JSON.parse(cls.schedule)
+                                      : cls.schedule || [];
+
+                                  return scheduleArray.map((item, index) => (
+                                    <div
+                                      key={index}
+                                      className="text-[11px] text-gray-700 border-b border-gray-100 last:border-0 py-1"
+                                    >
+                                      <div className="flex justify-between font-medium text-blue-700">
+                                        <span>{item.day}</span>
+                                        <span>{item.room || "Online"}</span>
+                                      </div>
+                                      <div className="flex justify-between text-gray-500 italic">
+                                        <span>
+                                          {item.start_time} - {item.end_time}
+                                        </span>
+                                        <span>{item.note}</span>
+                                      </div>
+                                    </div>
+                                  ));
+                                } catch (e) {
+                                  return (
+                                    <span className="text-[10px] text-red-400">
+                                      Lỗi định dạng lịch
+                                    </span>
+                                  );
+                                }
+                              })()}
                               <button
                                 onClick={() => handleEnroll(cls.id)}
                                 disabled={cls.is_full}

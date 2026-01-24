@@ -491,3 +491,9 @@ class UserInterest(models.Model):
 
     def __str__(self):
         return f"Sở thích của {self.user.email}"
+
+class CourseStatistic(Course):
+    class Meta:
+        proxy = True
+        verbose_name = 'Thống kê tổng quan'
+        verbose_name_plural = 'Thống kê tổng quan'
