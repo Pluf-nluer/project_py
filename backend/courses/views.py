@@ -176,7 +176,7 @@ class MyEnrolledCoursesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Lấy tất cả enrollment của user (bao gồm cả ACTIVE và COMPLETED)
+        # Lấy tất cả enrollment của user
         enrollments = Enrollment.objects.filter(
             student=request.user
         ).select_related('course_class__course')
@@ -204,12 +204,60 @@ class MyEnrolledCoursesView(APIView):
             course_serializer = CourseSerializer(course)
             course_dict = course_serializer.data
             
+            # Chuẩn hóa schedule từ CourseClass
+            schedules = []
+            raw_schedule = enrollment.course_class.schedule
+            
+            # Map tên ngày sang số
+            day_name_map = {
+                'Monday': 2, 'Tuesday': 3, 'Wednesday': 4,
+                'Thursday': 5, 'Friday': 6, 'Saturday': 7, 'Sunday': 8
+            }
+            
+            if isinstance(raw_schedule, list):
+                for slot in raw_schedule:
+                    if not isinstance(slot, dict):
+                        continue
+                    
+                    # Xử lý trường day (hỗ trợ cả số và string)
+                    day_value = slot.get('day')
+                    if isinstance(day_value, str):
+                        day_num = day_name_map.get(day_value)
+                    else:
+                        day_num = int(day_value) if day_value else None
+                    
+                    # Xử lý trường start (hỗ trợ cả start và start_time)
+                    start_time = slot.get('start') or slot.get('start_time', '')
+                    
+                    # Xử lý trường end (hỗ trợ cả end và end_time)
+                    end_time = slot.get('end') or slot.get('end_time', '')
+                    
+                    if day_num and start_time and end_time:
+                        schedule_slot = {
+                            'day': day_num,
+                            'start': str(start_time),
+                            'end': str(end_time)
+                        }
+                        
+                        # Thêm thông tin mở rộng nếu có
+                        if slot.get('room'):
+                            schedule_slot['room'] = slot['room']
+                        if slot.get('note'):
+                            schedule_slot['note'] = slot['note']
+                        
+                        schedules.append(schedule_slot)
+            
             # Thêm thông tin bổ sung
-            course_dict['enrollment_status'] = enrollment.status
-            course_dict['enrolled_at'] = enrollment.enrolled_at
-            course_dict['progress'] = progress
-            course_dict['class_name'] = enrollment.course_class.name
-            course_dict['last_accessed'] = enrollment.enrolled_at.strftime('%d/%m/%Y')
+            course_dict.update({
+                'enrollment_id': enrollment.id,
+                'enrollment_status': enrollment.status,
+                'enrolled_at': enrollment.enrolled_at,
+                'progress': progress,
+                'class_id': enrollment.course_class.id,
+                'class_name': enrollment.course_class.name,
+                'schedules': schedules,  # Thêm schedules vào response
+                'last_accessed': enrollment.enrolled_at.strftime('%d/%m/%Y')
+            })
             
             courses_data.append(course_dict)
         
@@ -217,8 +265,6 @@ class MyEnrolledCoursesView(APIView):
             "count": len(courses_data),
             "results": courses_data
         })
-    
-
 # 7. Bài kiểm tra đánh giá năng lực đầu vào
 class PlacementQuizView(APIView):
     # Cho phép truy cập công khai để không bị lỗi 401 khi test trình duyệt
@@ -711,3 +757,78 @@ def check_survey_status(request):
             "is_quizzed": False,  # Mới
             "tags": []
         })
+    
+# class EnrolledCourseDetailSerializer(serializers.ModelSerializer):
+#     """Serializer chi tiết cho khóa học đã đăng ký, bao gồm schedule"""
+#     class_name = serializers.CharField(source='course_class.name', read_only=True)
+#     class_id = serializers.IntegerField(source='course_class.id', read_only=True)
+#     schedules = serializers.SerializerMethodField()
+#     course_title = serializers.CharField(source='course_class.course.title', read_only=True)
+#     course_image = serializers.ImageField(source='course_class.course.image', read_only=True)
+#     course_id = serializers.IntegerField(source='course_class.course.id', read_only=True)
+    
+#     class Meta:
+#         model = Enrollment
+#         fields = [
+#             'id', 'course_id', 'course_title', 'course_image',
+#             'class_id', 'class_name', 'status', 'enrolled_at',
+#             'final_score', 'schedules'
+#         ]
+    
+#     def get_schedules(self, obj):
+#         """
+#         Trả về schedule của CourseClass theo định dạng chuẩn
+#         Hỗ trợ cả 2 format:
+#         - Format 1: {"day": 2, "start": "08:00", "end": "10:00"}
+#         - Format 2: {"day": "Monday", "start_time": "18:00", "end_time": "20:00", "room": "Online", "note": "..."}
+#         """
+#         schedule = obj.course_class.schedule
+        
+#         # Kiểm tra schedule có phải là list không
+#         if not isinstance(schedule, list):
+#             return []
+        
+#         # Map tên ngày sang số
+#         day_name_map = {
+#             'Monday': 2, 'Tuesday': 3, 'Wednesday': 4,
+#             'Thursday': 5, 'Friday': 6, 'Saturday': 7, 'Sunday': 8
+#         }
+        
+#         # Chuẩn hóa format
+#         normalized_schedule = []
+#         for slot in schedule:
+#             if not isinstance(slot, dict):
+#                 continue
+            
+#             # Xử lý trường day
+#             day_value = slot.get('day')
+#             if isinstance(day_value, str):
+#                 # Chuyển "Monday" -> 2
+#                 day_num = day_name_map.get(day_value)
+#             else:
+#                 # Đã là số
+#                 day_num = int(day_value) if day_value else None
+            
+#             # Xử lý trường start/start_time
+#             start_time = slot.get('start') or slot.get('start_time', '')
+            
+#             # Xử lý trường end/end_time  
+#             end_time = slot.get('end') or slot.get('end_time', '')
+            
+#             # Chỉ thêm vào nếu có đủ thông tin cơ bản
+#             if day_num and start_time and end_time:
+#                 normalized_slot = {
+#                     'day': day_num,
+#                     'start': str(start_time),
+#                     'end': str(end_time)
+#                 }
+                
+#                 # Thêm thông tin mở rộng nếu có
+#                 if slot.get('room'):
+#                     normalized_slot['room'] = slot['room']
+#                 if slot.get('note'):
+#                     normalized_slot['note'] = slot['note']
+                    
+#                 normalized_schedule.append(normalized_slot)
+        
+#         return normalized_schedule

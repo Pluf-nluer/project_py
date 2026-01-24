@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import WeeklySchedule from "./WeeklySchedule";
 
 import {
   FaArrowLeft,
@@ -79,124 +80,6 @@ const EnrolledCourseCard = ({ course }) => {
             ? "Xem lại"
             : "Tiếp tục học"}
         </button>
-      </div>
-    </div>
-  );
-};
-
-const WeeklySchedule = ({ enrolledCourses }) => {
-  const [currentWeek, setCurrentWeek] = useState(new Date());
-
-  const dayNames = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
-  const timeSlots = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
-
-  // Tính toán các ngày trong tuần bắt đầu từ Thứ 2
-  const getWeekDates = () => {
-    const curr = new Date(currentWeek);
-    const day = curr.getDay();
-    const diff = curr.getDate() - day + (day === 0 ? -6 : 1);
-    const firstDay = new Date(curr.setDate(diff));
-    
-    return Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(firstDay);
-      date.setDate(firstDay.getDate() + i);
-      return date;
-    });
-  };
-
-  const weekDates = getWeekDates();
-
-  const previousWeek = () => {
-    const newDate = new Date(currentWeek);
-    newDate.setDate(newDate.getDate() - 7);
-    setCurrentWeek(newDate);
-  };
-
-  const nextWeek = () => {
-    const newDate = new Date(currentWeek);
-    newDate.setDate(newDate.getDate() + 7);
-    setCurrentWeek(newDate);
-  };
-
-  const formatDateRange = () => {
-    const start = weekDates[0];
-    const end = weekDates[6];
-    return `${start.getDate()}/${start.getMonth() + 1} - ${end.getDate()}/${end.getMonth() + 1}/${end.getFullYear()}`;
-  };
-
-  const getCourseInSlot = (dayIndex, time) => {
-    return enrolledCourses?.find(course => 
-      course.schedules?.some(sched => 
-        sched.day_of_week === dayIndex && 
-        sched.start_time.startsWith(time)
-      )
-    );
-  };
-
-  if (!enrolledCourses || enrolledCourses.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-        <FaCalendar size={64} className="mx-auto text-gray-300 mb-4" />
-        <h3 className="text-xl font-bold text-gray-800">Chưa có lịch học</h3>
-        <p className="text-gray-600">Bạn chưa đăng ký khóa học nào để hiển thị lịch.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">Thời khóa biểu tuần</h3>
-          <p className="text-gray-600 text-sm">{formatDateRange()}</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={previousWeek} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <FaChevronLeft size={20} />
-          </button>
-          <button onClick={nextWeek} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <FaChevronRight size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <div className="min-w-[800px]">
-          <div className="grid grid-cols-8 gap-2 mb-2">
-            <div className="text-center font-semibold text-gray-600 text-sm py-2">Giờ</div>
-            {dayNames.map((day, index) => {
-              const date = weekDates[index];
-              const isToday = date.toDateString() === new Date().toDateString();
-              return (
-                <div key={day} className={`text-center py-2 rounded-lg ${isToday ? "bg-blue-100" : ""}`}>
-                  <div className={`font-semibold text-sm ${isToday ? "text-blue-600" : "text-gray-600"}`}>{day}</div>
-                  <div className={`text-xs ${isToday ? "text-blue-600" : "text-gray-500"}`}>{date.getDate()}/{date.getMonth() + 1}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="grid grid-cols-8 gap-2">
-            {timeSlots.map((time) => (
-              <React.Fragment key={time}>
-                <div className="text-xs text-gray-500 py-4 text-right pr-2">{time}</div>
-                {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
-                  const course = getCourseInSlot(dayIndex, time);
-                  return (
-                    <div key={dayIndex} className="border border-gray-100 min-h-[60px] rounded relative bg-gray-50/20">
-                      {course && (
-                        <div className="absolute inset-1 bg-blue-600 text-white p-2 rounded shadow-sm text-[10px] leading-tight overflow-hidden z-10">
-                          <p className="font-bold truncate">{course.title}</p>
-                          <p className="opacity-80 truncate">{course.class_name}</p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -722,11 +605,7 @@ const Profile = () => {
             )}
 
             {activeTab === "schedule" && (
-              <WeeklySchedule
-                hasSchedule={profileData.hasSchedule}
-                scheduleData={profileData.scheduleData}
-                enrolledCourses={profileData.enrolledCourses}
-              />
+              <WeeklySchedule enrolledCourses={profileData.enrolledCourses} />
             )}
 
             {activeTab === "settings" && (
