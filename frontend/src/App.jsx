@@ -9,6 +9,7 @@ import Schedule from "./pages/Schedule";
 import Profile from "./pages/Profile";
 import PlacementQuiz from "./pages/Quiz";
 import CourseQuiz from "./pages/CourseQuiz";
+import LearningPath from "./pages/LearningPath";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/course/:id" element={<CourseDetail />} />
+        <Route path="/learning/:id" element={<LearningPath />} />
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/placement-quiz" element={<PlacementQuiz />} />

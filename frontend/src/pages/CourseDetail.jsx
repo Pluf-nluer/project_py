@@ -18,6 +18,8 @@ import {
 } from "react-icons/fa";
 import Header from "../components/Header";
 import CourseQuiz from "./CourseQuiz";
+import SurveyModal from "./SurveyModal";
+import Login from "./Login";
 
 // Component con giữ nguyên logic hiển thị
 export default function CourseDetail() {
@@ -35,68 +37,102 @@ export default function CourseDetail() {
   const [message, setMessage] = useState(null); // Nội dung thông báo
   const [errorType, setErrorType] = useState(""); // Loại lỗi: 'success', 'conflict', 'error'
 
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false);
+
+
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  useEffect(() => {
+    // 1. Fetch course detail... (như code cũ của bạn)
+    // Giả sử API trả về field is_enrolled
+    // setIsEnrolled(courseRes.data.is_enrolled);
+
+    // 2. Kiểm tra xem đã làm khảo sát chưa (Logic mẫu)
+    const hasSurveyed = localStorage.getItem("has_surveyed");
+    if (!hasSurveyed) {
+      setShowSurvey(true);
+      localStorage.setItem("has_surveyed", "true");
+    }
+  }, [id]);
+  const renderEnrollButton = () => {
+    if (isEnrolled) {
+      return (
+        <button
+          onClick={() => navigate(`/learning/${id}`)}
+          className="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg flex items-center justify-center gap-2"
+        >
+          <FaPlay className="text-sm" /> Vào học ngay
+        </button>
+      );
+    }
+
+    return (
+      <button
+        onClick={scrollToClasses}
+        className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+      >
+        Đăng ký ngay
+      </button>
+    );
+  };
+
   useEffect(() => {
     const fetchCourseDetail = async () => {
       try {
         setLoading(true);
 
-        // 1. Lấy thông tin khóa học (thường cho phép không login)
+        // --- BƯỚC 2: PHẢI LẤY TOKEN LÊN ĐẦU TIÊN ---
+        const token = localStorage.getItem("access_token");
+
+        // Gửi token kèm theo ngay từ bước này để backend trả về is_enrolled
         const courseRes = await axios.get(
           `http://127.0.0.1:8000/api/courses/${id}/`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} },
         );
         setCourse(courseRes.data);
+        setIsEnrolled(courseRes.data.is_enrolled || false);
 
-        // 2. Lấy danh sách lớp học
+        // Kiểm tra Survey: Hiện nếu có token và chưa hiện trong session này
+        if (token && !sessionStorage.getItem("survey_shown")) {
+          setShowSurvey(true);
+          sessionStorage.setItem("survey_shown", "true");
+        }
+
+        // --- BƯỚC 3: CÁC FETCH SAU DÙNG TOKEN ĐÃ CÓ ---
         const classesRes = await axios.get(
           `http://127.0.0.1:8000/api/courses/course-classes/?course=${id}`,
         );
         setClasses(classesRes.data.results || classesRes.data);
 
-        // 3. Lấy danh sách bài kiểm tra (yêu cầu token)
-        const token = localStorage.getItem("access_token");
-
         if (token) {
           const quizzesRes = await axios.get(
             `http://127.0.0.1:8000/api/courses/courses/${id}/quizzes/`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
+            { headers: { Authorization: `Bearer ${token}` } },
           );
-          console.log("Danh sách quizzes từ CourseDetail:", quizzesRes.data);
           setQuizzes(quizzesRes.data.results || quizzesRes.data || []);
-        } else {
-          console.log("Chưa có token → không fetch quizzes");
-          setQuizzes([]);
         }
       } catch (error) {
         console.error("Lỗi fetch dữ liệu:", error);
-        if (error.response?.status === 401) {
-          alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
-          localStorage.removeItem("access_token");
-          navigate("/login");
-        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchCourseDetail();
-  }, [id, navigate]);
+  }, [id]);
+
+  const handleLoginSuccess = () => {
+    setShowAuthModal(false);
+    window.location.reload(); // Load lại trang để cập nhật trạng thái đã đăng nhập và fetch lại dữ liệu
+  };
 
   // --- HÀM XỬ LÝ ĐĂNG KÝ & CHECK TRÙNG LỊCH ---
   const handleEnroll = async (classId) => {
     // Kiểm tra đăng nhập
     const token = localStorage.getItem("access_token");
     if (!token) {
-      if (
-        window.confirm(
-          "Bạn cần đăng nhập để đăng ký. Chuyển đến trang đăng nhập?",
-        )
-      ) {
-        navigate("/login");
-      }
+      setShowAuthModal(true);
       return;
     }
 
@@ -111,12 +147,12 @@ export default function CourseDetail() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      // Thành công
-      setErrorType("success");
-      setMessage("✅ " + (response.data.message || "Đăng ký thành công!"));
+      setTimeout(() => {
+        setShowSurvey(true);
+      }, 1500); // Hiện sau 1.5s để user kịp nhìn thấy thông báo thành công
 
-      // Có thể reload lại danh sách lớp để cập nhật sĩ số
-      window.location.reload();
+      // Cập nhật lại trạng thái đã đăng ký để đổi nút thành "Vào học"
+      setIsEnrolled(true);
     } catch (error) {
       if (error.response) {
         const status = error.response.status;
@@ -144,11 +180,7 @@ export default function CourseDetail() {
     console.log("Nhấn nút bắt đầu → quizId:", quizId);
     const token = localStorage.getItem("access_token");
     if (!token) {
-      if (
-        window.confirm("Bạn cần đăng nhập để làm bài kiểm tra. Đăng nhập ngay?")
-      ) {
-        navigate("/login");
-      }
+      setShowAuthModal(true);
       return;
     }
 
@@ -192,12 +224,16 @@ export default function CourseDetail() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      <SurveyModal isOpen={showSurvey} onClose={() => setShowSurvey(false)} />
       <Header />
-
+      <Login
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={handleLoginSuccess}
+      />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
         <div className="container mx-auto px-6 lg:px-10 py-12">
-          {/* --- KHU VỰC THÔNG BÁO KẾT QUẢ ĐĂNG KÝ --- */}
           {message && (
             <div
               className={`p-4 mb-8 rounded-lg text-white font-bold text-center text-lg shadow-md animate-bounce-short ${
@@ -224,7 +260,6 @@ export default function CourseDetail() {
             <p className="text-xl text-gray-300 mb-6">
               {course.description.substring(0, 150)}...
             </p>
-
             <div className="flex flex-wrap items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-yellow-400">
@@ -232,20 +267,12 @@ export default function CourseDetail() {
                 </span>
                 <FaStar className="text-yellow-400" />
                 <span className="text-gray-400">
-                  ({course.imported_enrollments || 0} học viên đã học)
+                  ({course.imported_enrollments || 0} học viên)
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <FaChalkboardTeacher className="text-gray-400" />
-                <span>Giảng viên: {course.instructor_name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FaGlobe className="text-gray-400" />
-                <span>Ngôn ngữ: {course.language}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FaUserGraduate className="text-gray-400" />
-                <span>Cấp độ: {course.level}</span>
+                <span>{course.instructor_name}</span>
               </div>
             </div>
           </div>
@@ -253,59 +280,8 @@ export default function CourseDetail() {
       </div>
 
       <div className="container mx-auto px-6 lg:px-10 py-12 grid lg:grid-cols-3 gap-12">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-12">
-          {/* Danh sách lớp học phần */}
-          <div
-            id="class-list-section"
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-8"
-          >
-            <h2 className="text-2xl font-bold mb-6">Lớp học phần đang mở</h2>
-            <div className="space-y-6">
-              {classes.length > 0 ? (
-                classes.map((cls) => (
-                  <div
-                    key={cls.id}
-                    className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-xl mb-2">{cls.name}</h3>
-                        <div className="space-y-2 text-gray-600">
-                          <p className="flex items-center gap-2">
-                            <FaCalendarAlt /> Khai giảng: {cls.start_date}
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <FaMapMarkerAlt /> Sĩ số: {cls.current_enrollment}/
-                            {cls.max_capacity}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleEnroll(cls.id)}
-                        disabled={cls.current_enrollment >= cls.max_capacity}
-                        className={`px-6 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition ${
-                          cls.current_enrollment >= cls.max_capacity
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
-                        }`}
-                      >
-                        {cls.current_enrollment >= cls.max_capacity
-                          ? "Đã Đầy"
-                          : "Đăng Ký Học"}
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 italic">
-                  Hiện tại chưa có lớp học phần nào được mở cho môn học này.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Tabs */}
+        {/* MAIN CONTENT (LEFT) */}
+        <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex border-b border-gray-200 bg-gray-50">
               {["overview", "curriculum", "quizzes"].map((tab) => (
@@ -321,7 +297,7 @@ export default function CourseDetail() {
                   {tab === "overview"
                     ? "Tổng quan"
                     : tab === "curriculum"
-                      ? "Nội dung bài học"
+                      ? "Nội dung"
                       : "Bài kiểm tra"}
                 </button>
               ))}
@@ -339,117 +315,147 @@ export default function CourseDetail() {
                   <div>
                     <h3 className="text-xl font-bold mb-3">Yêu cầu/Tiền đề</h3>
                     <p className="text-gray-700 flex items-center gap-2">
-                      <FaQuestionCircle className="text-blue-500" />
-                      {course.prerequisites_text}
+                      <FaQuestionCircle className="text-blue-500" />{" "}
+                      {course.prerequisites_text ||
+                        "Không yêu cầu kiến thức trước."}
                     </p>
                   </div>
                 </div>
               )}
-
               {activeTab === "curriculum" && (
-                <div>
-                  {course.sections && course.sections.length > 0 ? (
-                    course.sections.map((section, index) => (
-                      // Giả sử bạn có component CourseSection, nếu không thì thay bằng div đơn giản
-                      <div key={index}>
-                        <h3>{section.title}</h3>
-                        {/* Hiển thị lessons */}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-10 text-gray-500 italic">
-                      Nội dung bài học đang được cập nhật...
-                    </div>
-                  )}
+                <div className="text-center py-10 text-gray-500 italic">
+                  Nội dung bài học đang cập nhật...
                 </div>
               )}
-
               {activeTab === "quizzes" && (
-                <div className="space-y-6">
-                  {quizzes.length > 0 ? (
-                    quizzes.map((quiz) => (
-                      <div
-                        key={quiz.id}
-                        className="bg-white p-6 rounded-lg shadow border border-gray-200"
-                      >
-                        <h3 className="font-bold text-lg mb-2">{quiz.title}</h3>
-                        <p className="text-gray-600 mb-4">{quiz.description}</p>
-                        <div className="flex gap-4 text-sm text-gray-500 mb-4">
-                          <span>Số câu: {quiz.total_questions}</span>
-                          <span>Thời gian: {quiz.time_limit} phút</span>
-                          <span>
-                            Lượt làm: {quiz.user_attempts_count}/
-                            {quiz.max_attempts}
-                          </span>
-                        </div>
-                        <button
-                          type="button" // Thêm để tránh form submit
-                          onClick={() => handleStartQuiz(quiz.id)}
-                          className="px-6 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition"
-                        >
-                          📝 Bắt đầu làm bài
-                        </button>
+                <div className="space-y-4">
+                  {quizzes.map((quiz) => (
+                    <div
+                      key={quiz.id}
+                      className="p-4 border rounded-lg flex justify-between items-center"
+                    >
+                      <div>
+                        <h4 className="font-bold">{quiz.title}</h4>
+                        <p className="text-sm text-gray-500">
+                          {quiz.time_limit} phút | {quiz.total_questions} câu
+                          hỏi
+                        </p>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 italic">
-                      Chưa có bài kiểm tra cho khóa học này.
-                    </p>
-                  )}
+                      <button
+                        onClick={() => handleStartQuiz(quiz.id)}
+                        className="bg-green-600 text-white px-4 py-2 rounded font-bold text-sm"
+                      >
+                        Làm bài
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Sidebar */}
+        {/* SIDEBAR (RIGHT) */}
         <div className="lg:col-span-1">
-          <div className="sticky top-24 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
-            <div className="relative group">
+          <div className="sticky top-24 space-y-6">
+            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
               <img
-                src={
-                  "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png"
-                }
-                className="w-full h-52 object-cover"
+                src="https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png"
+                className="w-full h-48 object-cover"
                 alt="preview"
               />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                <FaPlay className="text-white text-5xl" />
-              </div>
-            </div>
 
-            <div className="p-6">
-              <div className="text-3xl font-bold text-gray-900 mb-6">
-                {parseFloat(course.price) === 0
-                  ? "Miễn phí"
-                  : formatPrice(course.price)}
-              </div>
-              <button
-                onClick={scrollToClasses}
-                className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200"
-              >
-                Đăng ký ngay
-              </button>
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl font-bold text-gray-900">
+                    {parseFloat(course.price) === 0
+                      ? "Miễn phí"
+                      : formatPrice(course.price)}
+                  </span>
+                </div>
 
-              <div className="mt-8">
-                <h4 className="font-bold mb-4">Khóa học này bao gồm:</h4>
-                <ul className="space-y-4 text-sm text-gray-700">
-                  <li className="flex items-center gap-3">
-                    <FaClock className="text-blue-500" /> {course.duration}{" "}
-                    video
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <FaBook className="text-blue-500" /> {course.total_lessons}{" "}
-                    bài giảng
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <FaDownload className="text-blue-500" /> Tài liệu tải xuống
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <FaCertificate className="text-blue-500" /> Chứng chỉ hoàn
-                    thành
-                  </li>
-                </ul>
+                {/* KHỐI LỚP HỌC PHẦN (THAY THẾ NÚT ĐĂNG KÝ CŨ) */}
+                <div className="space-y-4 border-t pt-4">
+                  <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                    <FaCalendarAlt className="text-blue-600" /> Lớp học phần
+                    đang mở
+                  </h4>
+
+                  {isEnrolled ? (
+                    <button
+                      onClick={() => navigate(`/learning/${id}`)}
+                      className="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <FaPlay /> Vào học ngay
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      {classes.length > 0 ? (
+                        classes.map((cls) => (
+                          <div
+                            key={cls.id}
+                            className="p-3 bg-gray-50 rounded-lg border border-gray-100"
+                          >
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-bold text-sm">
+                                {cls.name}
+                              </span>
+                              <span className="text-xs text-gray-500 flex items-center gap-1">
+                                <FaMapMarkerAlt /> {cls.current_enrollment}/
+                                {cls.max_capacity}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-3 italic">
+                              Khai giảng: {cls.start_date}
+                            </p>
+                            <button
+                              onClick={() => handleEnroll(cls.id)}
+                              disabled={
+                                cls.current_enrollment >= cls.max_capacity
+                              }
+                              className={`w-full py-2 rounded font-bold text-xs transition ${
+                                cls.current_enrollment >= cls.max_capacity
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                              }`}
+                            >
+                              {cls.current_enrollment >= cls.max_capacity
+                                ? "Lớp đã đầy"
+                                : "Đăng ký lớp này"}
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">
+                          Hiện chưa có lớp học phần nào được mở.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* THÔNG TIN KHÓA HỌC BAO GỒM */}
+                <div className="border-t pt-6">
+                  <h4 className="font-bold mb-4">Khóa học này bao gồm:</h4>
+                  <ul className="space-y-3 text-sm text-gray-700">
+                    <li className="flex items-center gap-3">
+                      <FaClock className="text-blue-500 w-4" />{" "}
+                      {course.duration || "10h 45m"} video
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <FaBook className="text-blue-500 w-4" />{" "}
+                      {course.total_lessons || 0} bài giảng
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <FaDownload className="text-blue-500 w-4" /> Tài liệu tải
+                      xuống
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <FaCertificate className="text-blue-500 w-4" /> Chứng chỉ
+                      hoàn thành
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
