@@ -10,15 +10,27 @@ const PlacementQuiz = () => {
   const [timeLeft, setTimeLeft] = useState(1800); // 30 phút
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  // Cập nhật lại useEffect trong PlacementQuiz.js
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/courses/placement-quiz/")
-      .then((res) => res.json())
+    const token = localStorage.getItem("access_token");
+
+    fetch("http://127.0.0.1:8000/api/courses/placement-quiz/", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`, // Gửi token để Backend biết user là ai
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw res;
+        return res.json();
+      })
       .then((data) => {
         setQuiz(data);
         setLoading(false);
       })
       .catch((err) => {
-        alert("Không tải được bài kiểm tra");
+        console.error("Lỗi:", err);
         setLoading(false);
       });
   }, []);

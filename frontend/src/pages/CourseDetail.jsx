@@ -290,8 +290,67 @@ export default function CourseDetail() {
                 </div>
               )}
               {activeTab === "curriculum" && (
-                <div className="text-center py-10 text-gray-500 italic">
-                  Nội dung bài học đang cập nhật...
+                <div className="space-y-4">
+                  {course.modules && course.modules.length > 0 ? (
+                    course.modules.map((module, index) => (
+                      <div
+                        key={module.id}
+                        className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+                      >
+                        {/* Tiêu đề Phần học (Module) */}
+                        <div className="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center">
+                          <h4 className="font-bold text-gray-800 flex items-center gap-3">
+                            <span className="bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full text-xs">
+                              {index + 1}
+                            </span>
+                            {module.title}
+                          </h4>
+                          <span className="text-sm text-gray-500">
+                            {module.lessons?.length || 0} bài học
+                          </span>
+                        </div>
+
+                        {/* Danh sách Bài học (Lessons) */}
+                        <div className="divide-y divide-gray-100">
+                          {module.lessons && module.lessons.length > 0 ? (
+                            module.lessons.map((lesson, lIndex) => (
+                              <div
+                                key={lesson.id}
+                                className="p-4 flex justify-between items-center hover:bg-gray-50 transition cursor-pointer group"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <FaPlay className="text-gray-400 group-hover:text-blue-500 text-xs" />
+                                  <span className="text-gray-700 font-medium">
+                                    Bài {index + 1}.{lIndex + 1}: {lesson.title}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                  {lesson.is_preview && (
+                                    <span className="text-[10px] font-bold uppercase bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200">
+                                      Học thử
+                                    </span>
+                                  )}
+                                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                                    <FaClock className="text-xs" />
+                                    <span>{lesson.duration || "00:00"}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-4 text-sm text-gray-400 italic">
+                              Chưa có bài học nào trong phần này.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-10 text-gray-500">
+                      Khóa học này hiện chưa có nội dung chi tiết.
+                    </div>
+                  )}
                 </div>
               )}
               {activeTab === "quizzes" && (
