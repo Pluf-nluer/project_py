@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa";
 import Header from "../components/Header";
 import CourseQuiz from "./CourseQuiz";
-import SurveyModal from "./SurveyModal";
+// import SurveyModal from "./SurveyModal";
 import Login from "./Login";
 
 // Component con giữ nguyên logic hiển thị
@@ -39,7 +39,6 @@ export default function CourseDetail() {
 
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
-
 
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -224,7 +223,6 @@ export default function CourseDetail() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <SurveyModal isOpen={showSurvey} onClose={() => setShowSurvey(false)} />
       <Header />
       <Login
         isOpen={showAuthModal}
