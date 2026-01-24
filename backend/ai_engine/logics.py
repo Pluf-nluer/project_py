@@ -12,7 +12,7 @@ def get_recommendations(user, num_rec=8):
         # 1. Xử lý Cold Start cho người dùng mới
         user_interactions_count = UserInteraction.objects.filter(user=user).count()
         if user_interactions_count < 3:
-            return Course.objects.annotate(num_users=Count('interactions')).order_by('-num_users')[:num_rec]
+            return Course.objects.annotate(num_users=Count('interact    ions')).order_by('-num_users')[:num_rec]
 
         # 2. Kiểm tra và nạp mô hình
         if not os.path.exists(MODEL_PATH):
