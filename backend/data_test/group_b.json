@@ -1,0 +1,209 @@
+[
+  {
+    "quiz_title": "Đánh giá Năng lực: Phát triển Web Frontend (Nhóm B)",
+    "category": "B",
+    "description": "Bộ đề chuẩn W3C & MDN về HTML, CSS và JavaScript cơ bản.",
+    "questions": [
+      {
+        "text": "HTML là viết tắt của từ gì?",
+        "tag": "html", "level": 1,
+        "choices": [
+          {"text": "Hyperlinks and Text Markup Language", "is_correct": false},
+          {"text": "Home Tool Markup Language", "is_correct": false},
+          {"text": "Hyper Text Markup Language", "is_correct": true},
+          {"text": "Hyper Text Manipulation Language", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thẻ HTML nào dùng để tạo một đoạn văn bản?",
+        "tag": "html", "level": 1,
+        "choices": [
+          {"text": "<paragraph>", "is_correct": false},
+          {"text": "<p>", "is_correct": true},
+          {"text": "<text>", "is_correct": false},
+          {"text": "<div>", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thuộc tính nào của thẻ `<img>` là bắt buộc để cung cấp văn bản thay thế cho hình ảnh (quan trọng cho khả năng truy cập - accessibility)?",
+        "tag": "html", "level": 2,
+        "choices": [
+          {"text": "title", "is_correct": false},
+          {"text": "src", "is_correct": false},
+          {"text": "alt", "is_correct": true},
+          {"text": "description", "is_correct": false}
+        ]
+      },
+      {
+        "text": "CSS dùng để làm gì?",
+        "tag": "css", "level": 1,
+        "choices": [
+          {"text": "Tạo cấu trúc cho trang web", "is_correct": false},
+          {"text": "Xử lý logic và tương tác người dùng", "is_correct": false},
+          {"text": "Định dạng và trình bày giao diện của trang web (màu sắc, bố cục...)", "is_correct": true},
+          {"text": "Lưu trữ dữ liệu trên máy chủ", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong CSS, làm thế nào để chọn một phần tử có id là 'header'?",
+        "tag": "css", "level": 1,
+        "choices": [
+          {"text": ".header", "is_correct": false},
+          {"text": "#header", "is_correct": true},
+          {"text": "header", "is_correct": false},
+          {"text": "*header", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thuộc tính CSS `padding` kiểm soát khoảng cách ở đâu?",
+        "tag": "css", "level": 2,
+        "choices": [
+          {"text": "Bên ngoài đường viền (border) của phần tử", "is_correct": false},
+          {"text": "Bên trong đường viền, giữa nội dung và đường viền", "is_correct": true},
+          {"text": "Khoảng cách giữa các dòng văn bản", "is_correct": false},
+          {"text": "Độ dày của đường viền", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Để khai báo một biến trong JavaScript hiện đại (ES6+) mà giá trị của nó có thể thay đổi, ta dùng từ khóa nào?",
+        "tag": "javascript", "level": 1,
+        "choices": [
+          {"text": "const", "is_correct": false},
+          {"text": "var", "is_correct": false},
+          {"text": "let", "is_correct": true},
+          {"text": "variable", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Phương thức nào của mảng (Array) trong JavaScript dùng để thêm một phần tử vào cuối mảng?",
+        "tag": "javascript", "level": 2,
+        "choices": [
+          {"text": "pop()", "is_correct": false},
+          {"text": "shift()", "is_correct": false},
+          {"text": "push()", "is_correct": true},
+          {"text": "unshift()", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Mô hình hộp (Box Model) trong CSS bao gồm các thành phần nào theo thứ tự từ trong ra ngoài?",
+        "tag": "css", "level": 2,
+        "choices": [
+          {"text": "Content, Border, Padding, Margin", "is_correct": false},
+          {"text": "Content, Padding, Border, Margin", "is_correct": true},
+          {"text": "Margin, Border, Padding, Content", "is_correct": false},
+          {"text": "Padding, Content, Margin, Border", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thẻ HTML nào là phù hợp nhất về mặt ngữ nghĩa (semantic) để bao quanh danh sách các liên kết điều hướng chính của trang web?",
+        "tag": "html", "level": 2,
+        "choices": [
+          {"text": "<div>", "is_correct": false},
+          {"text": "<section>", "is_correct": false},
+          {"text": "<nav>", "is_correct": true},
+          {"text": "<ul>", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Flexbox, thuộc tính nào của container dùng để căn chỉnh các item dọc theo trục chính (main axis)?",
+        "tag": "css", "level": 3,
+        "choices": [
+          {"text": "align-items", "is_correct": false},
+          {"text": "justify-content", "is_correct": true},
+          {"text": "flex-direction", "is_correct": false},
+          {"text": "align-content", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Kết quả của biểu thức `console.log(typeof null)` trong JavaScript là gì?",
+        "tag": "javascript", "level": 3,
+        "choices": [
+          {"text": "\"null\"", "is_correct": false},
+          {"text": "\"undefined\"", "is_correct": false},
+          {"text": "\"object\"", "is_correct": true},
+          {"text": "\"number\"", "is_correct": false}
+        ]
+      },
+      {
+        "text": "DOM là viết tắt của từ gì trong ngữ cảnh lập trình web?",
+        "tag": "javascript", "level": 2,
+        "choices": [
+          {"text": "Data Object Model", "is_correct": false},
+          {"text": "Document Object Model", "is_correct": true},
+          {"text": "Document Oriented Module", "is_correct": false},
+          {"text": "Digital Output Method", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Phương thức `document.querySelector('.box')` sẽ trả về gì?",
+        "tag": "javascript", "level": 2,
+        "choices": [
+          {"text": "Tất cả các phần tử có class là 'box'", "is_correct": false},
+          {"text": "Phần tử đầu tiên trong tài liệu có class là 'box'", "is_correct": true},
+          {"text": "Một danh sách các id", "is_correct": false},
+          {"text": "Không trả về gì cả", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Sự kiện (Event) nào được kích hoạt khi người dùng gửi một biểu mẫu (form)?",
+        "tag": "javascript", "level": 2,
+        "choices": [
+          {"text": "onClick", "is_correct": false},
+          {"text": "onChange", "is_correct": false},
+          {"text": "onSubmit", "is_correct": true},
+          {"text": "onInput", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Đơn vị đo lường nào trong CSS là tương đối, dựa trên kích thước font chữ của phần tử cha?",
+        "tag": "css", "level": 3,
+        "choices": [
+          {"text": "px", "is_correct": false},
+          {"text": "rem", "is_correct": false},
+          {"text": "em", "is_correct": true},
+          {"text": "vh", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong JavaScript, sự khác biệt chính giữa `==` và `===` là gì?",
+        "tag": "javascript", "level": 3,
+        "choices": [
+          {"text": "`==` so sánh cả giá trị và kiểu dữ liệu, `===` chỉ so sánh giá trị", "is_correct": false},
+          {"text": "`===` so sánh cả giá trị và kiểu dữ liệu, `==` chỉ so sánh giá trị (có ép kiểu)", "is_correct": true},
+          {"text": "Không có sự khác biệt", "is_correct": false},
+          {"text": "`===` chỉ dùng cho chuỗi", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Để làm cho một trang web có thiết kế đáp ứng (responsive), ta thường sử dụng kỹ thuật CSS nào để áp dụng các kiểu khác nhau dựa trên kích thước màn hình?",
+        "tag": "css", "level": 3,
+        "choices": [
+          {"text": "Flexbox", "is_correct": false},
+          {"text": "Grid Layout", "is_correct": false},
+          {"text": "Media Queries (`@media`)", "is_correct": true},
+          {"text": "Transitions", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Hàm `fetch()` trong JavaScript hiện đại thường được sử dụng để làm gì?",
+        "tag": "javascript", "level": 3,
+        "choices": [
+          {"text": "Thay đổi kiểu dáng CSS", "is_correct": false},
+          {"text": "Thực hiện các yêu cầu HTTP bất đồng bộ (AJAX) để lấy dữ liệu từ API", "is_correct": true},
+          {"text": "Tạo hiệu ứng động", "is_correct": false},
+          {"text": "Lưu trữ dữ liệu vào Local Storage", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thẻ `<head>` trong HTML thường chứa những thông tin gì?",
+        "tag": "html", "level": 2,
+        "choices": [
+          {"text": "Nội dung chính hiển thị trên trang web", "is_correct": false},
+          {"text": "Các thông tin meta, tiêu đề trang, liên kết đến file CSS", "is_correct": true},
+          {"text": "Chân trang (footer)", "is_correct": false},
+          {"text": "Thanh điều hướng", "is_correct": false}
+        ]
+      }
+    ]
+  }
+]

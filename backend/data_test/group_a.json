@@ -1,0 +1,209 @@
+[
+  {
+    "quiz_title": "Đánh giá Năng lực: Tư duy Lập trình Căn bản (Nhóm A)",
+    "category": "A",
+    "description": "Bộ đề chuẩn CSTA K-12 dành cho người mới bắt đầu và học sinh phổ thông.",
+    "questions": [
+      {
+        "text": "Hành động nào sau đây thể hiện khái niệm 'Tuần tự' (Sequence) trong lập trình?",
+        "tag": "basic", "level": 1,
+        "choices": [
+          {"text": "Thực hiện một hành động lặp đi lặp lại", "is_correct": false},
+          {"text": "Thực hiện các bước theo một thứ tự cụ thể, từng bước một", "is_correct": true},
+          {"text": "Đưa ra quyết định dựa trên một điều kiện", "is_correct": false},
+          {"text": "Phản ứng lại một sự kiện (ví dụ: bấm chuột)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Scratch, khối lệnh 'Khi bấm vào lá cờ xanh' thuộc nhóm khối lệnh nào?",
+        "tag": "scratch", "level": 1,
+        "choices": [
+          {"text": "Chuyển động (Motion)", "is_correct": false},
+          {"text": "Điều khiển (Control)", "is_correct": false},
+          {"text": "Sự kiện (Events)", "is_correct": true},
+          {"text": "Cảm biến (Sensing)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Một 'Biến' (Variable) trong lập trình được sử dụng để làm gì?",
+        "tag": "basic", "level": 1,
+        "choices": [
+          {"text": "Lưu trữ thông tin có thể thay đổi được", "is_correct": true},
+          {"text": "Lặp lại một đoạn mã", "is_correct": false},
+          {"text": "Kết thúc chương trình", "is_correct": false},
+          {"text": "Kiểm tra một điều kiện đúng hay sai", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Nếu bạn muốn nhân vật trong Scratch di chuyển liên tục không ngừng, bạn sẽ dùng khối vòng lặp nào?",
+        "tag": "scratch", "level": 1,
+        "choices": [
+          {"text": "Lặp lại 10 lần (Repeat 10)", "is_correct": false},
+          {"text": "Liên tục (Forever)", "is_correct": true},
+          {"text": "Lặp lại cho đến khi (Repeat until)", "is_correct": false},
+          {"text": "Nếu... thì... (If... then...)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thuật toán là gì?",
+        "tag": "basic", "level": 1,
+        "choices": [
+          {"text": "Một ngôn ngữ lập trình", "is_correct": false},
+          {"text": "Một phần cứng máy tính", "is_correct": false},
+          {"text": "Một tập hợp các bước hướng dẫn chi tiết để giải quyết một vấn đề", "is_correct": true},
+          {"text": "Một lỗi trong chương trình", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Scratch, tọa độ (0, 0) nằm ở vị trí nào trên sân khấu?",
+        "tag": "scratch", "level": 2,
+        "choices": [
+          {"text": "Góc trên cùng bên trái", "is_correct": false},
+          {"text": "Góc dưới cùng bên trái", "is_correct": false},
+          {"text": "Chính giữa sân khấu", "is_correct": true},
+          {"text": "Góc trên cùng bên phải", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Điều gì sẽ xảy ra nếu điều kiện trong khối 'Nếu... thì...' (If... then...) là Sai (False)?",
+        "tag": "basic", "level": 2,
+        "choices": [
+          {"text": "Chương trình sẽ dừng lại ngay lập tức", "is_correct": false},
+          {"text": "Các khối lệnh bên trong 'Nếu... thì...' sẽ được thực hiện", "is_correct": false},
+          {"text": "Các khối lệnh bên trong 'Nếu... thì...' sẽ bị bỏ qua", "is_correct": true},
+          {"text": "Chương trình sẽ báo lỗi", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Khái niệm 'Phân rã' (Decomposition) trong tư duy máy tính có nghĩa là:",
+        "tag": "primary", "level": 2,
+        "choices": [
+          {"text": "Tự động hóa các tác vụ", "is_correct": false},
+          {"text": "Chia nhỏ một vấn đề phức tạp thành các phần nhỏ, dễ quản lý hơn", "is_correct": true},
+          {"text": "Tìm kiếm các mẫu (patterns) tương đồng", "is_correct": false},
+          {"text": "Viết mã nguồn chương trình", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong một chương trình, nếu biến 'Điểm' đang có giá trị là 10. Sau khi thực hiện lệnh 'Thay đổi Điểm một lượng là -2', giá trị mới của 'Điểm' là bao nhiêu?",
+        "tag": "scratch", "level": 2,
+        "choices": [
+          {"text": "12", "is_correct": false},
+          {"text": "8", "is_correct": true},
+          {"text": "-2", "is_correct": false},
+          {"text": "10", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Cấu trúc điều khiển nào cho phép chương trình thực hiện các hành động khác nhau tùy thuộc vào một điều kiện?",
+        "tag": "basic", "level": 2,
+        "choices": [
+          {"text": "Vòng lặp (Loop)", "is_correct": false},
+          {"text": "Tuần tự (Sequence)", "is_correct": false},
+          {"text": "Rẽ nhánh / Điều kiện (Selection / Conditional)", "is_correct": true},
+          {"text": "Biến (Variable)", "is_correct": false}
+        ]
+      },
+       {
+        "text": "Bạn muốn tạo một trò chơi mà người chơi thắng khi đạt 100 điểm. Bạn cần sử dụng cấu trúc nào để kiểm tra điều này liên tục?",
+        "tag": "secondary", "level": 3,
+        "choices": [
+          {"text": "Chỉ cần một khối 'Nếu... thì...' ở đầu chương trình", "is_correct": false},
+          {"text": "Một vòng lặp 'Liên tục' chứa bên trong là một khối 'Nếu... thì...' để kiểm tra điểm", "is_correct": true},
+          {"text": "Một khối 'Lặp lại 100 lần'", "is_correct": false},
+          {"text": "Chỉ cần sử dụng biến 'Điểm'", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Khái niệm 'Trừu tượng hóa' (Abstraction) giúp chúng ta làm gì?",
+        "tag": "secondary", "level": 3,
+        "choices": [
+          {"text": "Tập trung vào các chi tiết quan trọng và bỏ qua các chi tiết không cần thiết", "is_correct": true},
+          {"text": "Làm cho chương trình chạy nhanh hơn", "is_correct": false},
+          {"text": "Viết mã phức tạp hơn", "is_correct": false},
+          {"text": "Tìm ra tất cả các lỗi trong chương trình", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Scratch, làm thế nào để hai nhân vật có thể 'giao tiếp' hoặc phối hợp với nhau?",
+        "tag": "scratch", "level": 3,
+        "choices": [
+          {"text": "Chúng không thể giao tiếp với nhau", "is_correct": false},
+          {"text": "Sử dụng các khối lệnh 'Phát tin' (Broadcast) và 'Khi nhận tin'", "is_correct": true},
+          {"text": "Chỉ cần đặt chúng gần nhau trên sân khấu", "is_correct": false},
+          {"text": "Sử dụng chung một biến cục bộ", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Quá trình tìm và sửa lỗi trong chương trình được gọi là gì?",
+        "tag": "basic", "level": 2,
+        "choices": [
+          {"text": "Coding", "is_correct": false},
+          {"text": "Programming", "is_correct": false},
+          {"text": "Debugging", "is_correct": true},
+          {"text": "Executing", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Một vòng lặp được lồng bên trong một vòng lặp khác được gọi là?",
+        "tag": "secondary", "level": 3,
+        "choices": [
+          {"text": "Vòng lặp đôi (Double loop)", "is_correct": false},
+          {"text": "Vòng lặp lồng nhau (Nested loop)", "is_correct": true},
+          {"text": "Vòng lặp vô tận (Infinite loop)", "is_correct": false},
+          {"text": "Vòng lặp có điều kiện (Conditional loop)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Nếu một thuật toán có bước 'Lặp lại cho đến khi X > 5', và giá trị ban đầu của X là 10. Vòng lặp sẽ thực hiện bao nhiêu lần?",
+        "tag": "basic", "level": 3,
+        "choices": [
+          {"text": "0 lần", "is_correct": true},
+          {"text": "1 lần", "is_correct": false},
+          {"text": "5 lần", "is_correct": false},
+          {"text": "Vô tận", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Toán tử nào sau đây thường được dùng để kiểm tra sự bằng nhau trong các điều kiện?",
+        "tag": "basic", "level": 2,
+        "choices": [
+          {"text": "=", "is_correct": true},
+          {"text": "+", "is_correct": false},
+          {"text": ">", "is_correct": false},
+          {"text": "AND", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong tư duy máy tính, việc nhận ra rằng cách giải quyết bài toán 'tính tổng từ 1 đến 10' cũng có thể áp dụng cho bài toán 'tính tổng từ 1 đến 100' là ví dụ của:",
+        "tag": "secondary", "level": 3,
+        "choices": [
+          {"text": "Phân rã (Decomposition)", "is_correct": false},
+          {"text": "Nhận diện mẫu (Pattern Recognition)", "is_correct": true},
+          {"text": "Trừu tượng hóa (Abstraction)", "is_correct": false},
+          {"text": "Thiết kế thuật toán (Algorithm Design)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Lợi ích chính của việc sử dụng 'Hàm' (Function) hoặc 'Thủ tục' (Procedure) (ví dụ: khối 'Tự tạo' trong Scratch) là gì?",
+        "tag": "secondary", "level": 3,
+        "choices": [
+          {"text": "Tái sử dụng mã nguồn và làm cho chương trình dễ đọc hơn", "is_correct": true},
+          {"text": "Làm cho chương trình chạy chậm hơn", "is_correct": false},
+          {"text": "Tăng số lượng biến cần sử dụng", "is_correct": false},
+          {"text": "Bắt buộc phải có trong mọi chương trình", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Cổng logic nào chỉ trả về giá trị Đúng (True) khi CẢ HAI điều kiện đầu vào đều là Đúng?",
+        "tag": "basic", "level": 3,
+        "choices": [
+          {"text": "OR", "is_correct": false},
+          {"text": "NOT", "is_correct": false},
+          {"text": "AND", "is_correct": true},
+          {"text": "XOR", "is_correct": false}
+        ]
+      }
+    ]
+  }
+]

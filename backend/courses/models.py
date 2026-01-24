@@ -150,20 +150,54 @@ class User(AbstractUser):
 
 # 6. Mô hình cho Bài kiểm tra đánh giá năng lực đầu vào
 class Quiz(models.Model):
+    CATEGORY_CHOICES = (
+        ('A', 'Tư duy Lập trình & Cơ bản (Scratch/Basic)'),
+        ('B', 'Phát triển Web Frontend (HTML/CSS/JS)'),
+        ('C', 'Kỹ thuật Phần mềm & Hệ thống (Java/C#/.NET/SQL)'),
+        ('D', 'Thuật toán & Công nghệ Cao (AI/Python/C++)'),
+    )
+
     title = models.CharField(max_length=255, default="Kiểm tra năng lực đầu vào")
+
+    category = models.CharField(
+        max_length=1,
+        choices=CATEGORY_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name="Hạng mục đánh giá"
+    )
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name = "Bộ đề đánh giá đầu vào"
+        verbose_name_plural = "6.1. Bộ đề đánh giá đầu vào"
     def __str__(self):
         return self.title
 
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField("Câu hỏi")
+
+    # Bổ sung tag để mapping với UserInterest (ví dụ: 'python', 'sql', 'react')
+    tag = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="Tag năng lực"
+    )
+
+    # Bổ sung level để đánh giá độ khó (1: Dễ, 2: Trung bình, 3: Khó)
+    level = models.IntegerField(
+        default=1,
+        verbose_name="Độ khó (1-3)"
+    )
+
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['order']
+        verbose_name = "Đáp án đánh giá"
+        verbose_name_plural = "6.3. Đáp án đánh giá"
 
     def __str__(self):
         return self.text[:50]
@@ -182,11 +216,17 @@ class QuizResult(models.Model):
     score = models.IntegerField()  # Điểm số (ví dụ: 80)
     total_questions = models.IntegerField()  # Tổng số câu hỏi
     completed_at = models.DateTimeField(auto_now_add=True)
+
+    # Lưu lại category của bài test đã làm để thống kê
+    test_category = models.CharField(max_length=1, null=True, blank=True)
+
     recommended_level = models.CharField(max_length=20, blank=True)  # Beginner, Intermediate, Advanced
     details = models.JSONField(default=dict, verbose_name="Chi tiết làm bài (JSON)")
 
     class Meta:
-        unique_together = ('student', 'quiz')  # Một người chỉ làm quiz 1 lần
+        unique_together = ('student', 'quiz')
+        verbose_name = "Kết quả đánh giá"
+        verbose_name_plural = "6.4. Kết quả đánh giá"
 
     def __str__(self):
         return f"{self.student.email} - {self.quiz.title} - {self.score}%"

@@ -221,12 +221,63 @@ class MyEnrolledCoursesView(APIView):
 
 # 7. Bài kiểm tra đánh giá năng lực đầu vào
 class PlacementQuizView(APIView):
-    permission_classes = [AllowAny]  # Ai cũng làm được
+    # Cho phép truy cập công khai để không bị lỗi 401 khi test trình duyệt
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        quiz = Quiz.objects.filter(is_active=True).first()
+        # 1. Xác định User mục tiêu
+        target_user = None
+
+        # Ưu tiên lấy user từ Token (nếu bạn đang chạy qua giao diện React đã Login)
+        if request.user.is_authenticated:
+            target_user = request.user
+        else:
+            # Nếu chưa Login (truy cập trình duyệt), lấy email từ URL: ?email=...
+            email_param = request.query_params.get('email')
+            if email_param:
+                target_user = User.objects.filter(email=email_param).first()
+
+        # 2. Nếu hoàn toàn không xác định được User, trả về bộ đề mặc định Nhóm A
+        if not target_user:
+            quiz = Quiz.objects.filter(category='A', is_active=True).first()
+            if not quiz:
+                return Response({"error": "Chưa có bài kiểm tra mặc định"}, status=404)
+            return Response(QuizSerializer(quiz).data)
+
+        # 3. Lấy thông tin tags từ UserInterest của target_user
+        try:
+            interest = UserInterest.objects.get(user=target_user)
+            user_tags = interest.tags  # Ví dụ: ["java", "system"]
+        except UserInterest.DoesNotExist:
+            # Nếu User này chưa làm survey, trả về Nhóm A
+            quiz = Quiz.objects.filter(category='A', is_active=True).first()
+            return Response(QuizSerializer(quiz).data)
+
+        # 4. Định nghĩa logic Mapping
+        category_map = {
+            'A': ["scratch", "primary", "secondary", "basic"],
+            'B': ["html", "css", "javascript", "application"],
+            'C': ["java", "c#", ".net", "sql", "database", "system"],
+            'D': ["python", "ai", "algorithm", "datastructure", "c++", "cpp"]
+        }
+
+        # 5. Tính toán điểm cho từng Category
+        scores = {'A': 0, 'B': 0, 'C': 0, 'D': 0}
+        for tag in user_tags:
+            for cat, tags_in_cat in category_map.items():
+                if tag in tags_in_cat:
+                    scores[cat] += 1
+
+        # Lấy Category có điểm cao nhất
+        best_category = max(scores, key=scores.get)
+
+        # 6. Trả về bài Quiz khớp với Category đã tính toán
+        quiz = Quiz.objects.filter(category=best_category, is_active=True).first()
+
+        # Fallback nếu nhóm đó chưa có đề
         if not quiz:
-            return Response({"error": "Chưa có bài kiểm tra"}, status=404)
+            quiz = Quiz.objects.filter(is_active=True).first()
+
         serializer = QuizSerializer(quiz)
         return Response(serializer.data)
 

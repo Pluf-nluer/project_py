@@ -45,11 +45,21 @@ class ModuleSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.ModelSerializer):
     # Hiển thị danh sách Module (sections) và các lớp học (classes) kèm theo
-    sections = ModuleSerializer(source='modules', many=True, read_only=True)
+    # sections = ModuleSerializer(source='modules', many=True, read_only=True)
+    #
+    # class Meta:
+    #     model = Course
+    #     fields = '__all__'
+    modules = ModuleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
-        fields = '__all__'
+        # Liệt kê cụ thể hoặc dùng __all__ nhưng phải đảm bảo có modules
+        fields = [
+            'id', 'title', 'description', 'price', 'instructor_name',
+            'category', 'level', 'rating', 'imported_enrollments',
+             'modules'  # <--- Bắt buộc phải có modules ở đây
+        ]
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -303,23 +313,37 @@ class SubmitQuizSerializer(serializers.Serializer):
     )
 
 class CourseDetailSerializer(serializers.ModelSerializer):
-    sections = ModuleSerializer(source='modules', many=True, read_only=True)
+    # sections = ModuleSerializer(source='modules', many=True, read_only=True)
+    # is_enrolled = serializers.SerializerMethodField()
+    # enrolled_class = serializers.SerializerMethodField()
+    #
+    # class Meta:
+    #     model = Course
+    #     fields = '__all__'
+    #
+    # def get_is_enrolled(self, obj):
+    #     request = self.context.get('request')
+    #     if request and request.user.is_authenticated:
+    #         return Enrollment.objects.filter(
+    #             student=request.user,
+    #             course_class__course=obj
+    #         ).exists()
+    #     return False
+    modules = ModuleSerializer(many=True, read_only=True)
     is_enrolled = serializers.SerializerMethodField()
-    enrolled_class = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Course
+        # Phải đảm bảo có 'modules' trong danh sách fields
         fields = '__all__'
-    
+
     def get_is_enrolled(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return Enrollment.objects.filter(
-                student=request.user,
-                course_class__course=obj
-            ).exists()
+        user = self.context['request'].user
+        if user.is_authenticated:
+            # Sửa 'user=user' thành 'student=user' cho khớp với Model Enrollment của bạn
+            return Enrollment.objects.filter(student=user, course_class__course=obj).exists()
         return False
-    
+
     def get_enrolled_class(self, obj):
         """Trả về thông tin lớp mà user đã đăng ký (nếu có)"""
         request = self.context.get('request')

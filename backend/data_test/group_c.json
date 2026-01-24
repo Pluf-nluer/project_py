@@ -1,0 +1,209 @@
+[
+  {
+    "quiz_title": "Đánh giá Năng lực: Hệ thống & Backend (Nhóm C)",
+    "category": "C",
+    "description": "Bộ đề chuẩn Oracle Java & ANSI SQL về lập trình hướng đối tượng và cơ sở dữ liệu.",
+    "questions": [
+      {
+        "text": "Trong lập trình hướng đối tượng (OOP), một 'Lớp' (Class) là gì?",
+        "tag": "java", "level": 1,
+        "choices": [
+          {"text": "Một đối tượng cụ thể trong thực tế", "is_correct": false},
+          {"text": "Một bản thiết kế (blueprint) hoặc khuôn mẫu để tạo ra các đối tượng", "is_correct": true},
+          {"text": "Một hàm số", "is_correct": false},
+          {"text": "Một biến toàn cục", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Câu lệnh SQL nào dùng để lấy dữ liệu từ một cơ sở dữ liệu?",
+        "tag": "sql", "level": 1,
+        "choices": [
+          {"text": "GET", "is_correct": false},
+          {"text": "EXTRACT", "is_correct": false},
+          {"text": "SELECT", "is_correct": true},
+          {"text": "PULL", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Java, phương thức khởi tạo (Constructor) có đặc điểm gì?",
+        "tag": "java", "level": 1,
+        "choices": [
+          {"text": "Phải có kiểu trả về là void", "is_correct": false},
+          {"text": "Phải có cùng tên với tên lớp và không có kiểu trả về", "is_correct": true},
+          {"text": "Chỉ được gọi một lần duy nhất trong suốt chương trình", "is_correct": false},
+          {"text": "Phải là phương thức static", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Nguyên lý OOP nào cho phép ẩn đi các chi tiết triển khai bên trong và chỉ cung cấp giao diện ra bên ngoài?",
+        "tag": "java", "level": 2,
+        "choices": [
+          {"text": "Kế thừa (Inheritance)", "is_correct": false},
+          {"text": "Đa hình (Polymorphism)", "is_correct": false},
+          {"text": "Đóng gói (Encapsulation)", "is_correct": true},
+          {"text": "Trừu tượng (Abstraction)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong SQL, mệnh đề nào dùng để lọc kết quả dựa trên một điều kiện?",
+        "tag": "sql", "level": 1,
+        "choices": [
+          {"text": "ORDER BY", "is_correct": false},
+          {"text": "GROUP BY", "is_correct": false},
+          {"text": "WHERE", "is_correct": true},
+          {"text": "FILTER", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Từ khóa 'static' trong Java có nghĩa là gì khi áp dụng cho một biến hoặc phương thức?",
+        "tag": "java", "level": 2,
+        "choices": [
+          {"text": "Nó không thể bị thay đổi", "is_correct": false},
+          {"text": "Nó chỉ có thể được truy cập trong gói (package) hiện tại", "is_correct": false},
+          {"text": "Nó thuộc về lớp chứ không thuộc về một thể hiện (instance) cụ thể của lớp đó", "is_correct": true},
+          {"text": "Nó là một biến cục bộ", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Khóa chính (Primary Key) trong bảng cơ sở dữ liệu có vai trò gì?",
+        "tag": "database", "level": 2,
+        "choices": [
+          {"text": "Cho phép các giá trị trùng lặp", "is_correct": false},
+          {"text": "Định danh duy nhất mỗi dòng trong bảng và không được phép NULL", "is_correct": true},
+          {"text": "Liên kết với bảng khác", "is_correct": false},
+          {"text": "Tăng tốc độ truy vấn cho mọi cột", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Loại JOIN nào trong SQL chỉ trả về các dòng có giá trị khớp ở cả hai bảng?",
+        "tag": "sql", "level": 2,
+        "choices": [
+          {"text": "LEFT JOIN", "is_correct": false},
+          {"text": "RIGHT JOIN", "is_correct": false},
+          {"text": "INNER JOIN", "is_correct": true},
+          {"text": "FULL OUTER JOIN", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong C# hoặc Java, 'interface' là gì?",
+        "tag": "c#", "level": 3,
+        "choices": [
+          {"text": "Một lớp có thể được khởi tạo trực tiếp", "is_correct": false},
+          {"text": "Một bản thiết kế chỉ chứa các khai báo phương thức trừu tượng (không có phần thân) và các hằng số", "is_correct": true},
+          {"text": "Giống hệt như một lớp trừu tượng (abstract class)", "is_correct": false},
+          {"text": "Một công cụ để thiết kế giao diện người dùng", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Mệnh đề SQL nào dùng để nhóm các dòng có cùng giá trị vào các dòng tổng hợp (summary rows)?",
+        "tag": "sql", "level": 3,
+        "choices": [
+          {"text": "ORDER BY", "is_correct": false},
+          {"text": "GROUP BY", "is_correct": true},
+          {"text": "AGGREGATE BY", "is_correct": false},
+          {"text": "DISTINCT", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Tính đa hình (Polymorphism) trong OOP cho phép:",
+        "tag": "java", "level": 3,
+        "choices": [
+          {"text": "Một lớp có nhiều phương thức cùng tên nhưng khác tham số (Overloading)", "is_correct": false},
+          {"text": "Lớp con định nghĩa lại phương thức của lớp cha (Overriding)", "is_correct": false},
+          {"text": "Cả Overloading và Overriding, cho phép một đối tượng có thể mang nhiều hình thái", "is_correct": true},
+          {"text": "Ẩn dữ liệu của đối tượng", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Chuẩn hóa cơ sở dữ liệu (Database Normalization) là quá trình:",
+        "tag": "database", "level": 3,
+        "choices": [
+          {"text": "Tạo ra nhiều bản sao dữ liệu để dự phòng", "is_correct": false},
+          {"text": "Tổ chức dữ liệu trong database để giảm thiểu dư thừa và cải thiện tính toàn vẹn dữ liệu", "is_correct": true},
+          {"text": "Viết các câu truy vấn SQL phức tạp", "is_correct": false},
+          {"text": "Chuyển đổi cơ sở dữ liệu sang định dạng NoSQL", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Java, sự khác biệt giữa `ArrayList` và mảng thường (`[]`) là gì?",
+        "tag": "java", "level": 2,
+        "choices": [
+          {"text": "Mảng thường có kích thước động, ArrayList có kích thước cố định", "is_correct": false},
+          {"text": "ArrayList có kích thước động (có thể thay đổi), mảng thường có kích thước cố định", "is_correct": true},
+          {"text": "ArrayList chỉ lưu được số nguyên", "is_correct": false},
+          {"text": "Không có sự khác biệt", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Câu lệnh SQL `UPDATE` dùng để làm gì?",
+        "tag": "sql", "level": 1,
+        "choices": [
+          {"text": "Thêm dữ liệu mới vào bảng", "is_correct": false},
+          {"text": "Xóa dữ liệu khỏi bảng", "is_correct": false},
+          {"text": "Sửa đổi dữ liệu đã có trong bảng", "is_correct": true},
+          {"text": "Tạo bảng mới", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Xử lý ngoại lệ (Exception Handling) trong Java sử dụng khối lệnh nào?",
+        "tag": "java", "level": 2,
+        "choices": [
+          {"text": "if-else", "is_correct": false},
+          {"text": "switch-case", "is_correct": false},
+          {"text": "try-catch-finally", "is_correct": true},
+          {"text": "for-while", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Khóa ngoại (Foreign Key) là gì?",
+        "tag": "database", "level": 2,
+        "choices": [
+          {"text": "Một khóa chính trong bảng khác, dùng để thiết lập mối quan hệ giữa hai bảng", "is_correct": true},
+          {"text": "Một khóa dùng để mã hóa dữ liệu", "is_correct": false},
+          {"text": "Một cột chỉ chứa giá trị NULL", "is_correct": false},
+          {"text": "Tên gọi khác của Index", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong .NET/C#, trình thu gom rác (Garbage Collector) có nhiệm vụ gì?",
+        "tag": ".net", "level": 3,
+        "choices": [
+          {"text": "Tìm và sửa lỗi cú pháp", "is_correct": false},
+          {"text": "Tự động giải phóng bộ nhớ không còn được sử dụng bởi chương trình", "is_correct": true},
+          {"text": "Tối ưu hóa câu truy vấn database", "is_correct": false},
+          {"text": "Biên dịch mã nguồn", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Hàm tổng hợp (Aggregate function) nào trong SQL dùng để đếm số lượng dòng?",
+        "tag": "sql", "level": 1,
+        "choices": [
+          {"text": "SUM()", "is_correct": false},
+          {"text": "TOTAL()", "is_correct": false},
+          {"text": "COUNT()", "is_correct": true},
+          {"text": "NUMBER()", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Tính kế thừa (Inheritance) cho phép một lớp con làm gì?",
+        "tag": "java", "level": 2,
+        "choices": [
+          {"text": "Chỉ sử dụng các phương thức của chính nó", "is_correct": false},
+          {"text": "Kế thừa các thuộc tính và phương thức (public/protected) từ lớp cha", "is_correct": true},
+          {"text": "Thay đổi mã nguồn của lớp cha", "is_correct": false},
+          {"text": "Truy cập các biến private của lớp cha", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Mục đích của mệnh đề `HAVING` trong SQL là gì?",
+        "tag": "sql", "level": 3,
+        "choices": [
+          {"text": "Lọc các dòng trước khi nhóm (GROUP BY)", "is_correct": false},
+          {"text": "Lọc các nhóm kết quả sau khi đã áp dụng GROUP BY và các hàm tổng hợp", "is_correct": true},
+          {"text": "Sắp xếp kết quả", "is_correct": false},
+          {"text": "Kết nối các bảng", "is_correct": false}
+        ]
+      }
+    ]
+  }
+]

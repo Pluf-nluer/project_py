@@ -1,0 +1,209 @@
+[
+  {
+    "quiz_title": "Đánh giá Năng lực: Thuật toán & Công nghệ Cao (Nhóm D)",
+    "category": "D",
+    "description": "Bộ đề chuẩn ACM/IEEE và PCEP về Python, Cấu trúc dữ liệu, Giải thuật và AI cơ bản.",
+    "questions": [
+      {
+        "text": "Trong Python, cách đúng để in dòng chữ 'Hello World' ra màn hình là gì?",
+        "tag": "python", "level": 1,
+        "choices": [
+          {"text": "echo 'Hello World'", "is_correct": false},
+          {"text": "System.out.println('Hello World')", "is_correct": false},
+          {"text": "print('Hello World')", "is_correct": true},
+          {"text": "printf('Hello World')", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Cấu trúc dữ liệu nào hoạt động theo nguyên tắc LIFO (Last In, First Out - Vào sau, Ra trước)?",
+        "tag": "datastructure", "level": 1,
+        "choices": [
+          {"text": "Hàng đợi (Queue)", "is_correct": false},
+          {"text": "Ngăn xếp (Stack)", "is_correct": true},
+          {"text": "Danh sách liên kết (Linked List)", "is_correct": false},
+          {"text": "Cây (Tree)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thuật toán tìm kiếm nào yêu cầu danh sách phải được sắp xếp trước?",
+        "tag": "algorithm", "level": 2,
+        "choices": [
+          {"text": "Tìm kiếm tuyến tính (Linear Search)", "is_correct": false},
+          {"text": "Tìm kiếm nhị phân (Binary Search)", "is_correct": true},
+          {"text": "Tìm kiếm theo chiều rộng (BFS)", "is_correct": false},
+          {"text": "Tìm kiếm theo chiều sâu (DFS)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Python, kiểu dữ liệu `list` (danh sách) có đặc điểm gì?",
+        "tag": "python", "level": 1,
+        "choices": [
+          {"text": "Có thứ tự và có thể thay đổi (mutable)", "is_correct": true},
+          {"text": "Không có thứ tự và không thể thay đổi (immutable)", "is_correct": false},
+          {"text": "Lưu trữ các cặp khóa-giá trị (key-value)", "is_correct": false},
+          {"text": "Chỉ lưu trữ được số nguyên", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trí tuệ nhân tạo (AI) là gì?",
+        "tag": "ai", "level": 1,
+        "choices": [
+          {"text": "Lập trình robot để làm việc nhà", "is_correct": false},
+          {"text": "Một lĩnh vực khoa học máy tính giúp máy móc có khả năng thực hiện các tác vụ đòi hỏi trí thông minh của con người", "is_correct": true},
+          {"text": "Tăng tốc độ xử lý của CPU", "is_correct": false},
+          {"text": "Một phần mềm diệt virus", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Độ phức tạp thời gian O(1) có nghĩa là gì?",
+        "tag": "algorithm", "level": 2,
+        "choices": [
+          {"text": "Thời gian chạy tăng tuyến tính theo kích thước đầu vào", "is_correct": false},
+          {"text": "Thời gian chạy tăng theo bình phương kích thước đầu vào", "is_correct": false},
+          {"text": "Thời gian chạy là hằng số, không phụ thuộc vào kích thước đầu vào", "is_correct": true},
+          {"text": "Thuật toán chạy rất chậm", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong C++, toán tử nào dùng để truy cập thành viên của một con trỏ (pointer) đến struct hoặc class?",
+        "tag": "c++", "level": 2,
+        "choices": [
+          {"text": ".", "is_correct": false},
+          {"text": "->", "is_correct": true},
+          {"text": "::", "is_correct": false},
+          {"text": "&", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Cấu trúc dữ liệu 'Cây nhị phân' (Binary Tree) là gì?",
+        "tag": "datastructure", "level": 2,
+        "choices": [
+          {"text": "Một danh sách các phần tử được nối với nhau", "is_correct": false},
+          {"text": "Một cấu trúc cây mà mỗi nút có tối đa hai nút con (trái và phải)", "is_correct": true},
+          {"text": "Một bảng băm (Hash table)", "is_correct": false},
+          {"text": "Một đồ thị không có chu trình", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Học máy có giám sát (Supervised Learning) khác Học máy không giám sát (Unsupervised Learning) ở điểm chính nào?",
+        "tag": "ai", "level": 2,
+        "choices": [
+          {"text": "Học có giám sát cần dữ liệu đã được gán nhãn (labeled data)", "is_correct": true},
+          {"text": "Học không giám sát cần dữ liệu đã được gán nhãn", "is_correct": false},
+          {"text": "Học có giám sát không cần dữ liệu đầu vào", "is_correct": false},
+          {"text": "Không có sự khác biệt đáng kể", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Độ phức tạp thời gian trung bình của thuật toán Sắp xếp Nhanh (Quick Sort) là bao nhiêu?",
+        "tag": "algorithm", "level": 3,
+        "choices": [
+          {"text": "O(n^2)", "is_correct": false},
+          {"text": "O(n)", "is_correct": false},
+          {"text": "O(n log n)", "is_correct": true},
+          {"text": "O(log n)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Python, 'List Comprehension' là gì?",
+        "tag": "python", "level": 3,
+        "choices": [
+          {"text": "Một loại lỗi cú pháp", "is_correct": false},
+          {"text": "Một cách ngắn gọn và hiệu quả để tạo một list mới dựa trên một iterable có sẵn", "is_correct": true},
+          {"text": "Một thư viện để nén dữ liệu", "is_correct": false},
+          {"text": "Một hàm để sắp xếp list", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Cấu trúc dữ liệu 'Bảng băm' (Hash Table) thường cho độ phức tạp thời gian trung bình là bao nhiêu cho các thao tác chèn, xóa và tìm kiếm?",
+        "tag": "datastructure", "level": 3,
+        "choices": [
+          {"text": "O(n)", "is_correct": false},
+          {"text": "O(log n)", "is_correct": false},
+          {"text": "O(1)", "is_correct": true},
+          {"text": "O(n^2)", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Mạng nơ-ron nhân tạo (Neural Network) trong AI được lấy cảm hứng từ đâu?",
+        "tag": "ai", "level": 3,
+        "choices": [
+          {"text": "Cấu trúc của mạng internet", "is_correct": false},
+          {"text": "Cách hoạt động của hệ thống tệp tin", "is_correct": false},
+          {"text": "Cấu trúc và chức năng của bộ não sinh học và các nơ-ron thần kinh", "is_correct": true},
+          {"text": "Các thuật toán sắp xếp", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong C++, từ khóa `virtual` dùng để làm gì trong tính kế thừa?",
+        "tag": "c++", "level": 3,
+        "choices": [
+          {"text": "Tạo một lớp trừu tượng", "is_correct": false},
+          {"text": "Cho phép tính đa hình (polymorphism) khi sử dụng con trỏ lớp cơ sở trỏ đến đối tượng lớp dẫn xuất", "is_correct": true},
+          {"text": "Khai báo một hàm bạn (friend function)", "is_correct": false},
+          {"text": "Tối ưu hóa bộ nhớ", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Kỹ thuật 'Đệ quy' (Recursion) trong lập trình là gì?",
+        "tag": "algorithm", "level": 2,
+        "choices": [
+          {"text": "Một loại vòng lặp `for`", "is_correct": false},
+          {"text": "Một hàm tự gọi lại chính nó để giải quyết một bài toán nhỏ hơn của cùng một vấn đề", "is_correct": true},
+          {"text": "Quá trình kết nối cơ sở dữ liệu", "is_correct": false},
+          {"text": "Một lỗi làm tràn bộ nhớ ngăn xếp", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Python, sự khác biệt giữa `Tuple` và `List` là gì?",
+        "tag": "python", "level": 2,
+        "choices": [
+          {"text": "Tuple có thể thay đổi (mutable), List thì không", "is_correct": false},
+          {"text": "List dùng dấu ngoặc đơn `()`, Tuple dùng dấu ngoặc vuông `[]`", "is_correct": false},
+          {"text": "Tuple là bất biến (immutable) - không thể thay đổi sau khi tạo, trong khi List có thể thay đổi", "is_correct": true},
+          {"text": "Không có sự khác biệt", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Thuật toán nào sau đây là ví dụ của phương pháp 'Chia để trị' (Divide and Conquer)?",
+        "tag": "algorithm", "level": 3,
+        "choices": [
+          {"text": "Bubble Sort", "is_correct": false},
+          {"text": "Insertion Sort", "is_correct": false},
+          {"text": "Merge Sort", "is_correct": true},
+          {"text": "Selection Sort", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Mục đích chính của việc sử dụng 'Hàm mất mát' (Loss Function) trong huấn luyện mô hình Machine Learning là gì?",
+        "tag": "ai", "level": 3,
+        "choices": [
+          {"text": "Tăng tốc độ huấn luyện", "is_correct": false},
+          {"text": "Đo lường sự sai khác giữa dự đoán của mô hình và giá trị thực tế, từ đó điều chỉnh mô hình", "is_correct": true},
+          {"text": "Lưu trữ dữ liệu huấn luyện", "is_correct": false},
+          {"text": "Trực quan hóa dữ liệu", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Cấu trúc dữ liệu 'Đồ thị' (Graph) bao gồm các thành phần nào?",
+        "tag": "datastructure", "level": 2,
+        "choices": [
+          {"text": "Chỉ các nút (vertices)", "is_correct": false},
+          {"text": "Chỉ các cạnh (edges)", "is_correct": false},
+          {"text": "Một tập hợp các nút (vertices) và các cạnh (edges) nối các nút đó", "is_correct": true},
+          {"text": "Các hàng và cột", "is_correct": false}
+        ]
+      },
+      {
+        "text": "Trong Python, từ khóa `lambda` dùng để tạo ra cái gì?",
+        "tag": "python", "level": 3,
+        "choices": [
+          {"text": "Một lớp mới", "is_correct": false},
+          {"text": "Một hàm vô danh (anonymous function) nhỏ gọn", "is_correct": true},
+          {"text": "Một biến toàn cục", "is_correct": false},
+          {"text": "Một module mới", "is_correct": false}
+        ]
+      }
+    ]
+  }
+]
