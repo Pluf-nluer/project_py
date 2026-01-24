@@ -2,6 +2,10 @@ from rest_framework import serializers
 from courses.models import Course, CourseClass, Enrollment, WaitingList, Module, Lesson
 from django.contrib.auth import get_user_model
 from courses.models import Quiz, Question, Choice
+from courses.models import (
+    CourseQuiz, CourseQuizQuestion, CourseQuizChoice,
+    CourseQuizAttempt, CourseQuizAnswer
+)
 
 
 User = get_user_model()
@@ -104,4 +108,196 @@ class QuizSerializer(serializers.ModelSerializer):
 class QuizSubmitSerializer(serializers.Serializer):
     answers = serializers.DictField(
         child=serializers.IntegerField()  # {question_id: choice_id}
+    )
+
+# === SERIALIZERS CHO BÀI KIỂM TRA ===
+
+class CourseQuizChoiceSerializer(serializers.ModelSerializer):
+    """Serializer cho đáp án - ẩn thông tin is_correct khi lấy câu hỏi"""
+    class Meta:
+        model = CourseQuizChoice
+        fields = ['id', 'choice_text']
+
+
+class CourseQuizChoiceWithAnswerSerializer(serializers.ModelSerializer):
+    """Serializer hiển thị đầy đủ (dùng sau khi nộp bài)"""
+    class Meta:
+        model = CourseQuizChoice
+        fields = ['id', 'choice_text', 'is_correct']
+
+
+class CourseQuizQuestionSerializer(serializers.ModelSerializer):
+    """Serializer câu hỏi khi làm bài - không hiện đáp án đúng"""
+    choices = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CourseQuizQuestion
+        fields = ['id', 'question_text', 'points', 'choices']
+    
+    def get_choices(self, obj):
+        # Lấy thứ tự đáp án đã trộn từ attempt
+        attempt = self.context.get('attempt')
+        if attempt and attempt.choice_orders:
+            choice_order = attempt.choice_orders.get(str(obj.id), [])
+            if choice_order:
+                choices = CourseQuizChoice.objects.filter(
+                    id__in=choice_order
+                )
+                # Sắp xếp theo thứ tự đã trộn
+                choices_dict = {c.id: c for c in choices}
+                sorted_choices = [choices_dict[cid] for cid in choice_order if cid in choices_dict]
+                return CourseQuizChoiceSerializer(sorted_choices, many=True).data
+        
+        # Nếu không có thứ tự trộn, lấy theo thứ tự mặc định
+        return CourseQuizChoiceSerializer(
+            obj.choices.all().order_by('order'), 
+            many=True
+        ).data
+
+
+class CourseQuizQuestionWithAnswerSerializer(serializers.ModelSerializer):
+    """Serializer câu hỏi sau khi nộp bài - hiện đáp án đúng"""
+    choices = CourseQuizChoiceWithAnswerSerializer(many=True, read_only=True)
+    user_answer = serializers.SerializerMethodField()
+    is_correct = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CourseQuizQuestion
+        fields = [
+            'id', 'question_text', 'points', 'choices', 
+            'user_answer', 'is_correct', 'explanation'
+        ]
+    
+    def get_user_answer(self, obj):
+        attempt = self.context.get('attempt')
+        if attempt:
+            answer = CourseQuizAnswer.objects.filter(
+                attempt=attempt, question=obj
+            ).first()
+            if answer and answer.selected_choice:
+                return answer.selected_choice.id
+        return None
+    
+    def get_is_correct(self, obj):
+        attempt = self.context.get('attempt')
+        if attempt:
+            answer = CourseQuizAnswer.objects.filter(
+                attempt=attempt, question=obj
+            ).first()
+            if answer:
+                return answer.is_correct
+        return False
+
+
+class CourseQuizListSerializer(serializers.ModelSerializer):
+    """Danh sách bài kiểm tra - thông tin tổng quan"""
+    total_questions = serializers.IntegerField(source='get_total_questions')
+    total_points = serializers.IntegerField(source='get_total_points')
+    user_attempts_count = serializers.SerializerMethodField()
+    user_best_score = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CourseQuiz
+        fields = [
+            'id', 'title', 'description', 'time_limit', 
+            'passing_score', 'max_attempts', 'total_questions',
+            'total_points', 'user_attempts_count', 'user_best_score'
+        ]
+    
+    def get_user_attempts_count(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return obj.attempts.filter(
+                student=user, 
+                status='SUBMITTED'
+            ).count()
+        return 0
+    
+    def get_user_best_score(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            best = obj.attempts.filter(
+                student=user, 
+                status='SUBMITTED'
+            ).order_by('-score').first()
+            if best:
+                return best.get_percentage()
+        return None
+
+
+class CourseQuizAttemptSerializer(serializers.ModelSerializer):
+    """Thông tin lần làm bài"""
+    quiz_title = serializers.CharField(source='quiz.title', read_only=True)
+    percentage = serializers.FloatField(source='get_percentage', read_only=True)
+    is_passed = serializers.SerializerMethodField(read_only=True)
+    questions = serializers.SerializerMethodField()
+    time_remaining = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CourseQuizAttempt
+        fields = [
+            'id', 'quiz', 'quiz_title', 'status', 'started_at',
+            'submitted_at', 'time_spent', 'score', 'total_points',
+            'correct_answers', 'total_questions', 'percentage',
+            'is_passed', 'questions', 'time_remaining'
+        ]
+        read_only_fields = [
+            'started_at', 'submitted_at', 'score', 'total_points'
+        ]
+        
+    def get_is_passed(self, obj):
+        return obj.is_passed()
+        
+    def get_questions(self, obj):
+        # Lấy câu hỏi theo thứ tự đã trộn
+        if obj.question_order:
+            questions = CourseQuizQuestion.objects.filter(
+                id__in=obj.question_order
+            )
+            questions_dict = {q.id: q for q in questions}
+            sorted_questions = [
+                questions_dict[qid] 
+                for qid in obj.question_order 
+                if qid in questions_dict
+            ]
+        else:
+            sorted_questions = obj.quiz.quiz_questions.all()
+        
+        # Nếu đã nộp bài và cho phép xem đáp án
+        if obj.status == 'SUBMITTED' and obj.quiz.show_correct_answers:
+            return CourseQuizQuestionWithAnswerSerializer(
+                sorted_questions,
+                many=True,
+                context={'attempt': obj}
+            ).data
+        else:
+            return CourseQuizQuestionSerializer(
+                sorted_questions,
+                many=True,
+                context={'attempt': obj}
+            ).data
+    
+    def get_time_remaining(self, obj):
+        """Tính thời gian còn lại (giây)"""
+        if obj.status != 'IN_PROGRESS':
+            return 0
+        
+        from django.utils import timezone
+        time_limit_seconds = obj.quiz.time_limit * 60
+        elapsed = (timezone.now() - obj.started_at).total_seconds()
+        remaining = max(0, time_limit_seconds - elapsed)
+        return int(remaining)
+
+
+class SubmitAnswerSerializer(serializers.Serializer):
+    """Serializer để submit câu trả lời"""
+    question_id = serializers.IntegerField()
+    choice_id = serializers.IntegerField()
+
+
+class SubmitQuizSerializer(serializers.Serializer):
+    """Serializer để nộp toàn bộ bài kiểm tra"""
+    answers = serializers.ListField(
+        child=SubmitAnswerSerializer(),
+        allow_empty=True
     )

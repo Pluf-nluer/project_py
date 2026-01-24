@@ -7,8 +7,10 @@ from courses.views import get_popular_courses
 from courses.views import ChangePasswordView, RegisterView
 from courses.views import MyEnrolledCoursesView
 from courses.views import PlacementQuizView, SubmitQuizView, admin_dashboard_stats
+from rest_framework_simplejwt.views import TokenRefreshView
 # Import view đăng ký từ courses.views
 from courses.views import RegisterView
+from courses.views import CourseQuizListView, StartQuizView, SubmitAnswerView, QuizResultView, MyQuizAttemptsView, CheckTimeView
 
 urlpatterns = [
     path('', CourseListView.as_view(), name='course-list'),
@@ -24,6 +26,55 @@ urlpatterns = [
     path('submit-quiz/', SubmitQuizView.as_view(), name='submit-quiz'),
     path('course-classes/', CourseClassListView.as_view(), name='course-class-list'),
     path('admin/stats/', admin_dashboard_stats, name='admin-stats'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+        # Danh sách bài kiểm tra của một khóa học
+    path(
+        'courses/<int:course_id>/quizzes/', 
+        CourseQuizListView.as_view(), 
+        name='course-quiz-list'
+    ),
+    
+    # Bắt đầu làm bài kiểm tra
+    path(
+        'quizzes/<int:quiz_id>/start/', 
+        StartQuizView.as_view(), 
+        name='start-quiz'
+    ),
+    
+    # Lưu câu trả lời (submit từng câu)
+    path(
+        'quiz-attempts/<int:attempt_id>/answer/', 
+        SubmitAnswerView.as_view(), 
+        name='submit-answer'
+    ),
+    
+    # Nộp toàn bộ bài kiểm tra
+    path(
+        'quiz-attempts/<int:attempt_id>/submit/', 
+        SubmitQuizView.as_view(), 
+        name='submit-quiz'
+    ),
+    
+    # Xem kết quả bài kiểm tra
+    path(
+        'quiz-attempts/<int:pk>/result/', 
+        QuizResultView.as_view(), 
+        name='quiz-result'
+    ),
+    
+    # Lịch sử làm bài của một quiz
+    path(
+        'quizzes/<int:quiz_id>/my-attempts/', 
+        MyQuizAttemptsView.as_view(), 
+        name='my-quiz-attempts'
+    ),
+    
+    # Kiểm tra thời gian còn lại
+    path(
+        'quiz-attempts/<int:attempt_id>/check-time/', 
+        CheckTimeView.as_view(), 
+        name='check-time'
+    ),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
