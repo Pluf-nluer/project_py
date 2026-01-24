@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import {
   FaArrowLeft,
   FaCamera,
@@ -12,21 +13,19 @@ import {
   FaCalendar,
   FaPhoneAlt,
   FaRegUser,
-  FaRegBell,
   FaAward,
+  FaPlay,
 } from "react-icons/fa";
 import { IoIosSettings } from "react-icons/io";
-import { IoMailOutline } from "react-icons/io5";
+import { IoMailOutline, IoCloseSharp } from "react-icons/io5";
 import { FiMapPin } from "react-icons/fi";
 import { MdLogin } from "react-icons/md";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import { IoCloseSharp } from "react-icons/io5";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const Header = () => (
   <header className="bg-white shadow-sm py-4 px-6 sticky top-0 z-50">
     <div className="max-w-7xl mx-auto flex items-center">
-      {/* Nút quay về trang chủ */}
       <Link
         to="/"
         className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
@@ -38,36 +37,52 @@ const Header = () => (
   </header>
 );
 
-const EnrolledCourseCard = ({ course }) => (
-  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-    <div className="relative">
-      <img
-        src={course.thumbnail || course.image}
-        alt={course.title}
-        className="w-full h-40 object-cover"
-      />
-      <div className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-        {course.progress || 0}% Hoàn thành
-      </div>
-    </div>
-    <div className="p-4">
-      <h3 className="font-bold text-lg mb-2 line-clamp-2">{course.title}</h3>
-      <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-        <FaClock size={16} />
-        <span>Cập nhật: {course.last_accessed || course.lastAccessed}</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-        <div
-          className="bg-blue-600 h-2 rounded-full transition-all"
-          style={{ width: `${course.progress || 0}%` }}
+const EnrolledCourseCard = ({ course }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+      <div className="relative">
+        <img
+          src={
+            course.image ||
+            "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png"
+          }
+          alt={course.title}
+          className="w-full h-40 object-cover"
         />
+
+        {course.enrollment_status === "COMPLETED" && (
+          <div className="absolute top-2 left-2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+            <FaAward /> Đã hoàn thành
+          </div>
+        )}
       </div>
-      <button className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-        Tiếp tục học
-      </button>
+      <div className="p-4">
+        <h3 className="font-bold text-lg leading-snug mb-2 line-clamp-2 h-[3.5rem]">
+          {course.title}
+        </h3>{" "}
+        <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+          <FaBook size={14} />
+          <span>Lớp: {course.class_name}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+          <FaClock size={14} />
+          <span>Đăng ký: {course.last_accessed}</span>
+        </div>
+        <button
+          onClick={() => navigate(`/learning/${course.id}`)}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+        >
+          <FaPlay size={14} />
+          {course.enrollment_status === "COMPLETED"
+            ? "Xem lại"
+            : "Tiếp tục học"}
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const WeeklySchedule = ({ hasSchedule, scheduleData }) => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -216,35 +231,12 @@ const WeeklySchedule = ({ hasSchedule, scheduleData }) => {
                 <div className="text-xs text-gray-500 py-4 text-right pr-2">
                   {time}
                 </div>
-                {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
-                  const daySchedule = scheduleData?.[dayIndex];
-                  const classAtTime = daySchedule?.find((c) => c.time === time);
-
-                  return (
-                    <div
-                      key={`${time}-${dayIndex}`}
-                      className="border border-gray-100 min-h-[60px] rounded relative"
-                    >
-                      {classAtTime && (
-                        <div
-                          className={`absolute inset-0 bg-${classAtTime.color}-100 border-l-4 border-${classAtTime.color}-500 rounded p-2`}
-                          style={{ height: `${classAtTime.duration * 60}px` }}
-                        >
-                          <div
-                            className={`text-xs font-semibold text-${classAtTime.color}-700`}
-                          >
-                            {classAtTime.course}
-                          </div>
-                          <div
-                            className={`text-xs text-${classAtTime.color}-600 mt-1`}
-                          >
-                            {classAtTime.time} -{classAtTime.room}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
+                  <div
+                    key={`${time}-${dayIndex}`}
+                    className="border border-gray-100 min-h-[60px] rounded relative"
+                  />
+                ))}
               </React.Fragment>
             ))}
           </div>
@@ -255,6 +247,8 @@ const WeeklySchedule = ({ hasSchedule, scheduleData }) => {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -287,33 +281,41 @@ const Profile = () => {
       if (!token) {
         setError("Bạn chưa đăng nhập.");
         setLoading(false);
+        navigate("/");
         return;
       }
 
       try {
         setLoading(true);
-        const response = await axios.get(
+
+        // Fetch user profile
+        const profileRes = await axios.get(
           "http://127.0.0.1:8000/api/courses/profile/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
-        const data = response.data;
+        const data = profileRes.data;
         const fullName =
           `${data.first_name || ""} ${data.last_name || ""}`.trim() ||
           "Chưa đặt tên";
+
+        // Fetch enrolled courses
+        const coursesRes = await axios.get(
+          "http://127.0.0.1:8000/api/courses/my-courses/",
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+
+        const enrolledCourses =
+          coursesRes.data.results || coursesRes.data || [];
 
         setProfileData({
           name: fullName,
           email: data.email || "",
           phone: data.phone || "",
-          location: "", // Backend chưa có, để trống
+          location: "",
           bio: data.bio || "Chưa có giới thiệu",
           avatar: data.avatar || "https://via.placeholder.com/200?text=Avatar",
-          enrolledCourses: [], // Fetch riêng nếu cần
+          enrolledCourses: enrolledCourses,
           achievements: [],
           hasSchedule: false,
           scheduleData: [],
@@ -331,7 +333,7 @@ const Profile = () => {
         setError("Không thể tải thông tin. Kiểm tra kết nối backend.");
         if (err.response?.status === 401) {
           localStorage.removeItem("access_token");
-          setError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+          navigate("/");
         }
       } finally {
         setLoading(false);
@@ -339,7 +341,15 @@ const Profile = () => {
     };
 
     fetchProfileData();
-  }, []);
+  }, [navigate]);
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   const handleEditProfile = () => {
     setEditData({ ...profileData });
@@ -354,19 +364,17 @@ const Profile = () => {
     }
 
     try {
-      // 1. Chuẩn bị data text (name, phone, bio)
       const nameParts = editData.name.trim().split(" ");
       const first_name = nameParts.slice(0, -1).join(" ") || "";
       const last_name = nameParts[nameParts.length - 1] || "";
 
-      // 2. Nếu có file avatar mới → dùng FormData để gửi cả text + file
       if (avatarFile) {
         const formData = new FormData();
         formData.append("first_name", first_name);
         formData.append("last_name", last_name);
         formData.append("phone", editData.phone);
         formData.append("bio", editData.bio);
-        formData.append("avatar", avatarFile); // File thật
+        formData.append("avatar", avatarFile);
 
         const response = await axios.patch(
           "http://127.0.0.1:8000/api/courses/profile/",
@@ -376,12 +384,10 @@ const Profile = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
 
         const data = response.data;
-
-        // Cập nhật state từ response mới (avatar URL mới từ backend)
         const fullName =
           `${data.first_name || ""} ${data.last_name || ""}`.trim() ||
           "Chưa đặt tên";
@@ -395,7 +401,6 @@ const Profile = () => {
           avatar: data.avatar || "https://via.placeholder.com/200?text=Avatar",
         });
       } else {
-        // 3. Nếu KHÔNG có avatar mới → chỉ gửi text (JSON)
         const textData = {
           first_name,
           last_name,
@@ -411,7 +416,7 @@ const Profile = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         const data = response.data;
@@ -424,12 +429,11 @@ const Profile = () => {
           name: fullName,
           phone: data.phone || "",
           bio: data.bio || "Chưa có giới thiệu",
-          // avatar giữ nguyên
         });
       }
 
       setIsEditingProfile(false);
-      setAvatarFile(null); // Reset file sau khi upload
+      setAvatarFile(null);
       alert("Cập nhật hồ sơ thành công!");
     } catch (err) {
       console.error("Lỗi cập nhật profile:", err.response?.data || err);
@@ -449,7 +453,6 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       setAvatarFile(file);
-
       const reader = new FileReader();
       reader.onloadend = () => {
         setEditData({ ...editData, avatar: reader.result });
@@ -458,14 +461,6 @@ const Profile = () => {
     }
   };
 
-  if (loading) {
-    return <div>Đang tải...</div>;
-  }
-
-  if (error) {
-    return <div>Lỗi: {error}</div>;
-  }
-  // Change Password State and Handler
   const handleChangePassword = async () => {
     if (passwordData.new_password1 !== passwordData.new_password2) {
       setPasswordError("Mật khẩu mới không khớp!");
@@ -477,9 +472,7 @@ const Profile = () => {
       await axios.post(
         "http://127.0.0.1:8000/api/courses/change-password/",
         passwordData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       alert("Đổi mật khẩu thành công!");
@@ -491,16 +484,43 @@ const Profile = () => {
       });
     } catch (err) {
       setPasswordError(
-        err.response?.data?.old_password?.[0] || "Đổi mật khẩu thất bại."
+        err.response?.data?.old_password?.[0] || "Đổi mật khẩu thất bại.",
       );
     }
   };
-  // Logout Handler
+
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
-    window.location.href = "/"; // hoặc "/" để về trang chủ
+    navigate("/");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => navigate("/")}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Về trang chủ
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -546,18 +566,22 @@ const Profile = () => {
               <p className="text-gray-600 text-center mb-6">Học viên</p>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-3 text-gray-600">
+                <div className="flex items-center gap-3 text-gray-600 text-sm">
                   <IoMailOutline size={18} />
-                  {profileData.email}
+                  <span className="truncate">{profileData.email}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <FaPhoneAlt size={18} />
-                  {profileData.phone}
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <FiMapPin size={18} />
-                  {profileData.location}
-                </div>
+                {profileData.phone && (
+                  <div className="flex items-center gap-3 text-gray-600 text-sm">
+                    <FaPhoneAlt size={18} />
+                    {profileData.phone}
+                  </div>
+                )}
+                {profileData.location && (
+                  <div className="flex items-center gap-3 text-gray-600 text-sm">
+                    <FiMapPin size={18} />
+                    {profileData.location}
+                  </div>
+                )}
               </div>
 
               <button
@@ -648,9 +672,13 @@ const Profile = () => {
                         size={32}
                       />
                       <div className="text-3xl font-bold text-green-600 mb-1">
-                        {profileData.achievements.length}
+                        {
+                          profileData.enrolledCourses.filter(
+                            (c) => c.enrollment_status === "COMPLETED",
+                          ).length
+                        }
                       </div>
-                      <div className="text-gray-600">Thành tựu đạt được</div>
+                      <div className="text-gray-600">Khóa học hoàn thành</div>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-6 text-center">
                       <FaClock
@@ -658,22 +686,52 @@ const Profile = () => {
                         size={32}
                       />
                       <div className="text-3xl font-bold text-purple-600 mb-1">
-                        128
+                        {profileData.enrolledCourses.reduce(
+                          (sum, c) => sum + (c.progress || 0),
+                          0,
+                        )}
+                        %
                       </div>
-                      <div className="text-gray-600">Giờ học tích lũy</div>
+                      <div className="text-gray-600">Tiến độ trung bình</div>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h2 className="text-2xl font-bold mb-6">Khóa học gần đây</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {profileData.enrolledCourses
-                      .slice(0, 3)
-                      .map((course, index) => (
-                        <EnrolledCourseCard key={index} course={course} />
-                      ))}
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold">Khóa học gần đây</h2>
+                    <button
+                      onClick={() => setActiveTab("courses")}
+                      className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
+                    >
+                      Xem tất cả →
+                    </button>
                   </div>
+                  {profileData.enrolledCourses.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {profileData.enrolledCourses
+                        .slice(0, 3)
+                        .map((course, index) => (
+                          <EnrolledCourseCard key={index} course={course} />
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <FaBook
+                        className="mx-auto text-gray-300 mb-4"
+                        size={48}
+                      />
+                      <p className="text-gray-600">
+                        Bạn chưa đăng ký khóa học nào
+                      </p>
+                      <button
+                        onClick={() => navigate("/courses")}
+                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        Khám phá khóa học
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -681,36 +739,29 @@ const Profile = () => {
             {activeTab === "courses" && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-2xl font-bold mb-6">Khóa học của tôi</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {profileData.enrolledCourses.map((course, index) => (
-                    <EnrolledCourseCard key={index} course={course} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "achievements" && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-6">Thành tựu</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {profileData.achievements.map((achievement, index) => (
-                    <div
-                      key={index}
-                      className="bg-gray-50 rounded-lg p-6 text-center hover:shadow-md transition-shadow"
+                {profileData.enrolledCourses.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {profileData.enrolledCourses.map((course, index) => (
+                      <EnrolledCourseCard key={index} course={course} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <FaBook className="mx-auto text-gray-300 mb-4" size={64} />
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">
+                      Chưa có khóa học nào
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Hãy bắt đầu hành trình học tập của bạn ngay hôm nay!
+                    </p>
+                    <button
+                      onClick={() => navigate("/courses")}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                     >
-                      <div className="text-4xl mb-4">{achievement.icon}</div>
-                      <h3 className="font-bold text-lg mb-2">
-                        {achievement.name}
-                      </h3>
-                      <p className="text-gray-600 mb-4 text-sm">
-                        {achievement.description}
-                      </p>
-                      <div className="text-gray-500 text-xs">
-                        {achievement.date}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      Khám phá khóa học
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

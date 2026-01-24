@@ -23,7 +23,7 @@ urlpatterns = [
     path('popular/', get_popular_courses, name='popular-courses'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('my-courses/', MyEnrolledCoursesView.as_view(), name='my-enrolled-courses'),
-
+    
     # ===== BÀI KIỂM TRA ĐÁNH GIÁ ĐẦU VÀO (PLACEMENT) =====
     path('placement-quiz/', PlacementQuizView.as_view(), name='placement-quiz'),
     path('placement-quiz/submit/', SubmitPlacementQuizView.as_view(), name='submit-placement-quiz'),

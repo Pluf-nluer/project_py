@@ -36,8 +36,17 @@ const Header = () => {
         "http://127.0.0.1:8000/api/courses/my-courses/",
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      setMyCourses(res.data);
+
+      // Fix: lấy results thay vì toàn bộ data
+      const courses = Array.isArray(res.data.results)
+        ? res.data.results
+        : Array.isArray(res.data)
+          ? res.data
+          : [];
+
+      setMyCourses(courses);
     } catch (err) {
+      console.error("Lỗi fetch my-courses:", err);
       setMyCourses([]);
     }
   };

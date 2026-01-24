@@ -12,6 +12,7 @@ from courses.models import CourseClass, Enrollment, WaitingList, Course, UserLes
 from courses.services import check_prerequisites, check_schedule_conflict
 from courses.serializers import (
     CourseClassSerializer,
+    CourseDetailSerializer,
     CourseSerializer,
     UserSerializer
 )
@@ -22,21 +23,28 @@ from courses.models import Quiz, Question, Choice, QuizResult
 from courses.serializers import QuizSerializer, QuizSubmitSerializer
 from courses.models import (
     Course, CourseQuiz, CourseQuizAttempt, 
-    CourseQuizAnswer, CourseQuizQuestion
+    CourseQuizAnswer, CourseQuizQuestion,Lesson
 )
 from courses.serializers import (
-    CourseQuizListSerializer, CourseQuizAttemptSerializer,SubmitQuizSerializer
+    CourseQuizListSerializer, CourseQuizAttemptSerializer,SubmitQuizSerializer, CourseDetailSerializer
+
 )
 
 from django.utils import timezone
+
 
 User = get_user_model()
 
 # 1. Chi tiết & Danh sách khóa học (Giữ nguyên - Đã tốt)
 class CourseDetailView(generics.RetrieveAPIView):
     queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    serializer_class = CourseDetailSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all().order_by('-id')
@@ -71,6 +79,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 # 4. API Đăng ký lớp học (Logic quan trọng nhất)
 class EnrollClassView(APIView):
     permission_classes = [IsAuthenticated] # Bắt buộc đăng nhập
+    
 
     def post(self, request):
         user = request.user # Lấy user từ token thực tế
@@ -101,6 +110,8 @@ class EnrollClassView(APIView):
             # Tạo bản ghi đăng ký
             Enrollment.objects.create(student=user, course_class=course_class)
             return Response({"message": "Đăng ký khóa học thành công!"}, status=status.HTTP_201_CREATED)
+        
+        logger.debug(f"User: {user}, Class: {course_class.id}, Schedule: {course_class.schedule}")
 
 class CourseClassListView(generics.ListAPIView):
     queryset = CourseClass.objects.all()
@@ -160,14 +171,52 @@ class ChangePasswordView(APIView):
         return Response({"message": "Đổi mật khẩu thành công!"}, status=status.HTTP_200_OK)
     
 # 6. Xem các khóa học đã đăng ký
+
 class MyEnrolledCoursesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        enrollments = Enrollment.objects.filter(student=request.user, status='ACTIVE')  # hoặc tất cả
-        courses = [enrollment.course_class.course for enrollment in enrollments]
-        serializer = CourseSerializer(courses, many=True)
-        return Response(serializer.data)
+        # Lấy tất cả enrollment của user (bao gồm cả ACTIVE và COMPLETED)
+        enrollments = Enrollment.objects.filter(
+            student=request.user
+        ).select_related('course_class__course')
+        
+        courses_data = []
+        for enrollment in enrollments:
+            course = enrollment.course_class.course
+            
+            # Tính % hoàn thành dựa trên UserLessonProgress
+            total_lessons = Lesson.objects.filter(
+                module__course=course
+            ).count()
+            
+            completed_lessons = UserLessonProgress.objects.filter(
+                student=request.user,
+                lesson__module__course=course,
+                is_completed=True
+            ).count()
+            
+            progress = 0
+            if total_lessons > 0:
+                progress = int((completed_lessons / total_lessons) * 100)
+            
+            # Serialize course data
+            course_serializer = CourseSerializer(course)
+            course_dict = course_serializer.data
+            
+            # Thêm thông tin bổ sung
+            course_dict['enrollment_status'] = enrollment.status
+            course_dict['enrolled_at'] = enrollment.enrolled_at
+            course_dict['progress'] = progress
+            course_dict['class_name'] = enrollment.course_class.name
+            course_dict['last_accessed'] = enrollment.enrolled_at.strftime('%d/%m/%Y')
+            
+            courses_data.append(course_dict)
+        
+        return Response({
+            "count": len(courses_data),
+            "results": courses_data
+        })
     
 
 # 7. Bài kiểm tra đánh giá năng lực đầu vào
