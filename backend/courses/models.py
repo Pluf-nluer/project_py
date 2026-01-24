@@ -447,6 +447,7 @@ class UserInterest(models.Model):
     user = models.OneToOneField(User, related_name='interest', on_delete=models.CASCADE)
     tags = models.JSONField(default=list) # Lưu ['python', 'ai', 'algorithm']
     is_surveyed = models.BooleanField(default=False)
+    is_quizzed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Sở thích của {self.user.email}"

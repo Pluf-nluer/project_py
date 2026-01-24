@@ -4,16 +4,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from courses import views
-from courses.views import EnrollClassView, CourseClassListView, CourseListView, CourseDetailView, UserProfileView
+from courses.views import EnrollClassView, CourseClassListView, CourseListView, CourseDetailView, SubmitCourseQuizView, UserProfileView
 from courses.views import get_popular_courses
 from courses.views import ChangePasswordView, RegisterView
 from courses.views import MyEnrolledCoursesView
-from courses.views import PlacementQuizView, SubmitQuizView, admin_dashboard_stats
+from courses.views import PlacementQuizView, admin_dashboard_stats
 from rest_framework_simplejwt.views import TokenRefreshView
 # Import view đăng ký từ courses.views
 from courses.views import RegisterView
-from courses.views import CourseQuizListView, StartQuizView, SubmitAnswerView, QuizResultView, MyQuizAttemptsView, CheckTimeView
-
+from courses.views import CourseQuizListView, StartQuizView, SubmitAnswerView, QuizResultView, MyQuizAttemptsView, CheckTimeView, SubmitPlacementQuizView
 urlpatterns = [
     path('', CourseListView.as_view(), name='course-list'),
     path('<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
@@ -24,8 +23,13 @@ urlpatterns = [
     path('popular/', get_popular_courses, name='popular-courses'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('my-courses/', MyEnrolledCoursesView.as_view(), name='my-enrolled-courses'),
+    
+    # ===== BÀI KIỂM TRA ĐÁNH GIÁ ĐẦU VÀO (PLACEMENT) =====
     path('placement-quiz/', PlacementQuizView.as_view(), name='placement-quiz'),
-    path('submit-quiz/', SubmitQuizView.as_view(), name='submit-quiz'),
+    path('placement-quiz/submit/', SubmitPlacementQuizView.as_view(), name='submit-placement-quiz'),
+    path('check-survey/', views.check_survey_status, name='check-survey'),
+
+
     path('course-classes/', CourseClassListView.as_view(), name='course-class-list'),
     path('admin/stats/', admin_dashboard_stats, name='admin-stats'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
@@ -54,7 +58,7 @@ urlpatterns = [
     # Nộp toàn bộ bài kiểm tra
     path(
         'quiz-attempts/<int:attempt_id>/submit/', 
-        SubmitQuizView.as_view(), 
+        SubmitCourseQuizView.as_view(), 
         name='submit-quiz'
     ),
     

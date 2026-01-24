@@ -36,7 +36,10 @@ const MyCourses = ({ myCourses, isOpen, onToggle, isLoggedIn }) => {
                     >
                       <div className="flex gap-3">
                         <img
-                          src={course.image}
+                          src={
+                            course.image ||
+                            "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png"
+                          }
                           alt={course.title}
                           className="w-20 h-14 object-cover rounded"
                         />
@@ -65,7 +68,7 @@ const MyCourses = ({ myCourses, isOpen, onToggle, isLoggedIn }) => {
               {/* View All Button */}
               <div className="px-4 py-3 border-t border-gray-100">
                 <NavLink
-                  to="/my-courses"
+                  to="/profile?tab=courses"
                   className="block text-center text-sm text-primary font-semibold hover:underline"
                   onClick={onToggle}
                 >

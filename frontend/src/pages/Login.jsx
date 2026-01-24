@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; // Đảm bảo đã chạy: npm install axios
 
@@ -66,7 +66,9 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
       }
     } catch (err) {
       console.error("Lỗi đăng nhập:", err.response?.data);
-      setError(err.response?.data?.detail || "Email hoặc mật khẩu không chính xác.");
+      setError(
+        err.response?.data?.detail || "Email hoặc mật khẩu không chính xác.",
+      );
     }
   };
 
@@ -89,7 +91,7 @@ const Auth = ({ isOpen, onClose, onLogin }) => {
       setAuthMode("login"); // Chuyển sang chế độ đăng nhập sau khi đăng ký xong
     } catch (err) {
       setError(
-        err.response?.data?.email || "Đăng ký thất bại. Vui lòng thử lại."
+        err.response?.data?.email || "Đăng ký thất bại. Vui lòng thử lại.",
       );
     }
   };

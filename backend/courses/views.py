@@ -12,6 +12,7 @@ from courses.models import CourseClass, Enrollment, WaitingList, Course, UserLes
 from courses.services import check_prerequisites, check_schedule_conflict
 from courses.serializers import (
     CourseClassSerializer,
+    CourseDetailSerializer,
     CourseSerializer,
     UserSerializer
 )
@@ -22,21 +23,28 @@ from courses.models import Quiz, Question, Choice, QuizResult
 from courses.serializers import QuizSerializer, QuizSubmitSerializer
 from courses.models import (
     Course, CourseQuiz, CourseQuizAttempt, 
-    CourseQuizAnswer, CourseQuizQuestion
+    CourseQuizAnswer, CourseQuizQuestion,Lesson
 )
 from courses.serializers import (
-    CourseQuizListSerializer, CourseQuizAttemptSerializer,SubmitQuizSerializer
+    CourseQuizListSerializer, CourseQuizAttemptSerializer,SubmitQuizSerializer, CourseDetailSerializer
+
 )
 
 from django.utils import timezone
+
 
 User = get_user_model()
 
 # 1. Chi tiết & Danh sách khóa học (Giữ nguyên - Đã tốt)
 class CourseDetailView(generics.RetrieveAPIView):
     queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    serializer_class = CourseDetailSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all().order_by('-id')
@@ -71,6 +79,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 # 4. API Đăng ký lớp học (Logic quan trọng nhất)
 class EnrollClassView(APIView):
     permission_classes = [IsAuthenticated] # Bắt buộc đăng nhập
+    
 
     def post(self, request):
         user = request.user # Lấy user từ token thực tế
@@ -101,6 +110,8 @@ class EnrollClassView(APIView):
             # Tạo bản ghi đăng ký
             Enrollment.objects.create(student=user, course_class=course_class)
             return Response({"message": "Đăng ký khóa học thành công!"}, status=status.HTTP_201_CREATED)
+        
+        logger.debug(f"User: {user}, Class: {course_class.id}, Schedule: {course_class.schedule}")
 
 class CourseClassListView(generics.ListAPIView):
     queryset = CourseClass.objects.all()
@@ -160,14 +171,52 @@ class ChangePasswordView(APIView):
         return Response({"message": "Đổi mật khẩu thành công!"}, status=status.HTTP_200_OK)
     
 # 6. Xem các khóa học đã đăng ký
+
 class MyEnrolledCoursesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        enrollments = Enrollment.objects.filter(student=request.user, status='ACTIVE')  # hoặc tất cả
-        courses = [enrollment.course_class.course for enrollment in enrollments]
-        serializer = CourseSerializer(courses, many=True)
-        return Response(serializer.data)
+        # Lấy tất cả enrollment của user (bao gồm cả ACTIVE và COMPLETED)
+        enrollments = Enrollment.objects.filter(
+            student=request.user
+        ).select_related('course_class__course')
+        
+        courses_data = []
+        for enrollment in enrollments:
+            course = enrollment.course_class.course
+            
+            # Tính % hoàn thành dựa trên UserLessonProgress
+            total_lessons = Lesson.objects.filter(
+                module__course=course
+            ).count()
+            
+            completed_lessons = UserLessonProgress.objects.filter(
+                student=request.user,
+                lesson__module__course=course,
+                is_completed=True
+            ).count()
+            
+            progress = 0
+            if total_lessons > 0:
+                progress = int((completed_lessons / total_lessons) * 100)
+            
+            # Serialize course data
+            course_serializer = CourseSerializer(course)
+            course_dict = course_serializer.data
+            
+            # Thêm thông tin bổ sung
+            course_dict['enrollment_status'] = enrollment.status
+            course_dict['enrolled_at'] = enrollment.enrolled_at
+            course_dict['progress'] = progress
+            course_dict['class_name'] = enrollment.course_class.name
+            course_dict['last_accessed'] = enrollment.enrolled_at.strftime('%d/%m/%Y')
+            
+            courses_data.append(course_dict)
+        
+        return Response({
+            "count": len(courses_data),
+            "results": courses_data
+        })
     
 
 # 7. Bài kiểm tra đánh giá năng lực đầu vào
@@ -470,67 +519,72 @@ class CheckTimeView(APIView):
         })
 
 # 10. Nộp bài kiểm tra
-class SubmitQuizView(APIView):
-    """View duy nhất xử lý nộp bài cho mọi loại Quiz"""
+class SubmitPlacementQuizView(APIView):  
+    """Submit bài kiểm tra placement (đánh giá đầu vào)"""
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, attempt_id):
-        # 1. Lấy bản ghi lượt làm bài
-        attempt = get_object_or_404(
-            CourseQuizAttempt,
-            id=attempt_id,
-            student=request.user,
-            status='IN_PROGRESS'  # Chỉ cho nộp nếu đang làm
-        )
+    def post(self, request):
+        user = request.user
+        answers = request.data.get('answers', {})  # Format: {question_id: choice_id}
+        
+        # Lấy quiz active
+        quiz = Quiz.objects.filter(is_active=True).first()
+        if not quiz:
+            return Response({"error": "Không tìm thấy bài kiểm tra"}, status=404)
 
-        quiz = attempt.quiz
+        # Tính điểm
+        total_questions = quiz.questions.count()
+        correct_count = 0
+        
+        for question_id, choice_id in answers.items():
+            try:
+                choice = Choice.objects.get(id=choice_id, question_id=question_id)
+                if choice.is_correct:
+                    correct_count += 1
+            except Choice.DoesNotExist:
+                continue
 
-        # 2. Tính toán thời gian và trạng thái
-        elapsed = (timezone.now() - attempt.started_at).total_seconds()
-        attempt.time_spent = int(elapsed)
-        attempt.submitted_at = timezone.now()
+        score = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
 
-        if elapsed > (quiz.time_limit * 60 + 30):  # bù 30s delay
-            attempt.status = 'TIME_UP'
+        # Xác định level
+        if score < 40:
+            level = "Beginner"
+        elif score < 75:
+            level = "Intermediate"
         else:
-            attempt.status = 'SUBMITTED'
+            level = "Advanced"
 
-        # 3. Tính điểm từ các câu trả lời đã lưu trong CourseQuizAnswer
-        answers = attempt.answers.all()
-        total_score = sum(a.points_earned for a in answers)
-        correct_count = sum(1 for a in answers if a.is_correct)
-
-        attempt.score = total_score
-        attempt.correct_answers = correct_count
-        attempt.save()
-
-        # 4. Logic phản hồi tùy biến
-        serializer = CourseQuizAttemptSerializer(attempt)
-        response_data = {
-            "success": True,
-            "result": serializer.data,
-            "summary": {
-                "score_percentage": attempt.get_percentage(),
-                "is_passed": attempt.is_passed()
+        # Lưu kết quả
+        result, created = QuizResult.objects.update_or_create(
+            student=user,
+            quiz=quiz,
+            defaults={
+                'score': score,
+                'total_questions': total_questions,
+                'recommended_level': level,
+                'details': {
+                    'correct_answers': correct_count,
+                    'answers': answers
+                }
             }
-        }
+        )
+        # Cập nhật trạng thái đã làm quiz trong UserInterest
+        interest, _ = UserInterest.objects.get_or_create(user=user)
+        interest.is_quizzed = True
+        interest.save()
 
-        # Nếu là bài test đầu vào -> Thêm gợi ý trình độ
-        if quiz.quiz_type == 'PLACEMENT':
-            percentage = attempt.get_percentage()
-            if percentage < 40:
-                level = "Beginner"
-            elif percentage < 75:
-                level = "Intermediate"
-            else:
-                level = "Advanced"
+        # Gợi ý khóa học
+        recommended_courses = Course.objects.filter(
+            level__icontains=level
+        )[:3]
 
-            response_data["summary"]["recommended_level"] = level
-            # Gợi ý khóa học (giả sử model Course có field level)
-            recommended = Course.objects.filter(category__icontains=level.lower())[:4]
-            response_data["recommended_courses"] = CourseSerializer(recommended, many=True).data
-
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response({
+            "score": score,
+            "level": level,
+            "total_questions": total_questions,
+            "correct_answers": correct_count,
+            "recommended_courses": CourseSerializer(recommended_courses, many=True).data
+        })
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -543,3 +597,66 @@ def save_user_interests(request):
     interest.save()
 
     return Response({"message": "Đã lưu sở thích thành công!"})
+
+# 11. Nộp bài kiểm tra khóa học
+class SubmitCourseQuizView(APIView):  
+    """Submit bài kiểm tra khóa học (CourseQuizAttempt)"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, attempt_id):
+        attempt = get_object_or_404(
+            CourseQuizAttempt,
+            id=attempt_id,
+            student=request.user,
+            status='IN_PROGRESS'
+        )
+
+        quiz = attempt.quiz
+
+        # Tính toán thời gian
+        elapsed = (timezone.now() - attempt.started_at).total_seconds()
+        attempt.time_spent = int(elapsed)
+        attempt.submitted_at = timezone.now()
+
+        if elapsed > (quiz.time_limit * 60 + 30):
+            attempt.status = 'TIME_UP'
+        else:
+            attempt.status = 'SUBMITTED'
+
+        # Tính điểm
+        answers = attempt.answers.all()
+        total_score = sum(a.points_earned for a in answers)
+        correct_count = sum(1 for a in answers if a.is_correct)
+
+        attempt.score = total_score
+        attempt.correct_answers = correct_count
+        attempt.save()
+
+        serializer = CourseQuizAttemptSerializer(attempt)
+        return Response({
+            "success": True,
+            "result": serializer.data,
+            "summary": {
+                "score_percentage": attempt.get_percentage(),
+                "is_passed": attempt.is_passed()
+            }
+        }, status=status.HTTP_200_OK)
+    
+# 12. Kiểm tra trạng thái survey sở thích người dùng
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_survey_status(request):
+    """Kiểm tra xem user đã làm survey và quiz chưa"""
+    try:
+        interest = UserInterest.objects.get(user=request.user)
+        return Response({
+            "is_surveyed": interest.is_surveyed,
+            "is_quizzed": interest.is_quizzed,  # Mới
+            "tags": interest.tags
+        })
+    except UserInterest.DoesNotExist:
+        return Response({
+            "is_surveyed": False,
+            "is_quizzed": False,  # Mới
+            "tags": []
+        })

@@ -303,15 +303,35 @@ class SubmitQuizSerializer(serializers.Serializer):
     )
 
 class CourseDetailSerializer(serializers.ModelSerializer):
+    sections = ModuleSerializer(source='modules', many=True, read_only=True)
     is_enrolled = serializers.SerializerMethodField()
-
+    enrolled_class = serializers.SerializerMethodField()
+    
     class Meta:
         model = Course
-        fields = '__all__'  # Đảm bảo có is_enrolled trong này
-
+        fields = '__all__'
+    
     def get_is_enrolled(self, obj):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            # Kiểm tra xem user đã đăng ký bất kỳ lớp nào của khóa học này chưa
-            return Enrollment.objects.filter(user=user, course_class__course=obj).exists()
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Enrollment.objects.filter(
+                student=request.user,
+                course_class__course=obj
+            ).exists()
         return False
+    
+    def get_enrolled_class(self, obj):
+        """Trả về thông tin lớp mà user đã đăng ký (nếu có)"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            enrollment = Enrollment.objects.filter(
+                student=request.user,
+                course_class__course=obj
+            ).first()
+            if enrollment:
+                return {
+                    'class_id': enrollment.course_class.id,
+                    'class_name': enrollment.course_class.name,
+                    'status': enrollment.status
+                }
+        return None
