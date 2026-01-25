@@ -13,6 +13,9 @@ import {
   FaMapMarkerAlt,
   FaChalkboardTeacher,
   FaCertificate,
+  FaExclamationTriangle, // ← Thêm
+  FaTimes, // ← Thêm
+  FaInfoCircle,
 } from "react-icons/fa";
 import Header from "../components/Header";
 import CourseQuiz from "./CourseQuiz";
@@ -33,6 +36,7 @@ export default function CourseDetail() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [enrolledClass, setEnrolledClass] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [conflictDetails, setConflictDetails] = useState(null);
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
@@ -93,6 +97,7 @@ export default function CourseDetail() {
     if (!window.confirm("Bạn có chắc chắn muốn đăng ký lớp học này?")) return;
 
     setMessage(null);
+    setConflictDetails(null);
 
     try {
       const response = await axios.post(
@@ -104,7 +109,6 @@ export default function CourseDetail() {
       setMessage("✓ Đăng ký thành công! Chuyển đến trang học...");
       setErrorType("success");
 
-      // Reload để cập nhật trạng thái
       setTimeout(() => {
         window.location.reload();
       }, 1500);
@@ -113,16 +117,49 @@ export default function CourseDetail() {
         const status = error.response.status;
         const errorData = error.response.data;
 
+        console.log("Error Status:", status);
+        console.log("Error Data:", errorData);
+
         if (status === 409) {
+          // Xử lý trùng lịch
           setErrorType("conflict");
-          setMessage(`⚠️ CẢNH BÁO TRÙNG LỊCH: ${errorData.error}`);
+          const msg = errorData.error || "Trùng lịch học";
+          setMessage(msg);
+
+          // Parse thông tin chi tiết
+          // Format: "Trùng lịch với lớp 'AI01-2024' (Trí tuệ nhân tạo) vào Thứ 3 08:00-10:00. Lịch mới: 08:30-10:30"
+          const regex =
+            /Trùng lịch với lớp '(.+?)' \((.+?)\) vào (.+?) (\d{2}:\d{2})-(\d{2}:\d{2})\. Lịch mới: (\d{2}:\d{2})-(\d{2}:\d{2})/;
+          const matches = msg.match(regex);
+
+          if (matches) {
+            setConflictDetails({
+              conflictClass: matches[1],
+              conflictCourse: matches[2],
+              day: matches[3],
+              existingTime: `${matches[4]} - ${matches[5]}`,
+              newTime: `${matches[6]} - ${matches[7]}`,
+              newClass:
+                classes.find((c) => c.id === classId)?.name || "Lớp mới",
+            });
+          }
         } else if (status === 400) {
           setErrorType("error");
-          setMessage(`✖ Không thể đăng ký: ${errorData.error}`);
+          setMessage(errorData.error || "Không thể đăng ký");
+        } else if (status === 202) {
+          // Lớp đầy - vào waiting list
+          setErrorType("warning");
+          setMessage(
+            errorData.message ||
+              "Lớp đã đầy. Bạn đã được thêm vào danh sách chờ.",
+          );
         } else {
           setErrorType("error");
-          setMessage("Lỗi hệ thống, vui lòng thử lại sau.");
+          setMessage(errorData.error || "Lỗi hệ thống, vui lòng thử lại sau.");
         }
+      } else {
+        setErrorType("error");
+        setMessage("Không thể kết nối đến server. Vui lòng kiểm tra kết nối.");
       }
     }
   };
@@ -197,16 +234,177 @@ export default function CourseDetail() {
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
         <div className="container mx-auto px-6 lg:px-10 py-12">
           {message && (
-            <div
-              className={`p-4 mb-8 rounded-lg text-white font-bold text-center text-lg shadow-md ${
-                errorType === "success"
-                  ? "bg-green-600"
-                  : errorType === "conflict"
-                    ? "bg-orange-500"
-                    : "bg-red-600"
-              }`}
-            >
-              {message}
+            <div className="mb-8 animate-slideDown">
+              {/* SUCCESS MESSAGE */}
+              {errorType === "success" && (
+                <div className="bg-green-600 text-white rounded-lg shadow-xl overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-start gap-4">
+                      <FaCheckCircle className="text-3xl flex-shrink-0 mt-1" />
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-2">Thành công!</h3>
+                        <p className="text-lg">{message}</p>
+                      </div>
+                      <button
+                        onClick={() => setMessage(null)}
+                        className="text-white hover:bg-green-700 p-2 rounded-lg transition"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SCHEDULE CONFLICT MESSAGE */}
+              {errorType === "conflict" && (
+                <div className="bg-white rounded-lg shadow-2xl overflow-hidden border-l-8 border-orange-500">
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 border-b border-orange-200">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-orange-500 text-white p-3 rounded-full">
+                        <FaExclamationTriangle className="text-2xl" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-orange-900 mb-2">
+                          ⚠️ TRÙNG LỊCH HỌC
+                        </h3>
+                        <p className="text-orange-800 font-medium">
+                          Không thể đăng ký do xung đột thời khóa biểu
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setMessage(null);
+                          setConflictDetails(null);
+                        }}
+                        className="text-gray-500 hover:bg-orange-100 p-2 rounded-lg transition"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    {/* Hiển thị chi tiết nếu có */}
+                    {conflictDetails ? (
+                      <>
+                        {/* Lớp đang học bị trùng */}
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <FaBook className="text-red-600 text-xl mt-1 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="font-semibold text-red-900 mb-3">
+                                🚫 Lớp bạn đang học bị trùng:
+                              </p>
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-red-800">
+                                    {conflictDetails.conflictClass}
+                                  </span>
+                                  <span className="text-gray-600">-</span>
+                                  <span className="text-gray-700">
+                                    {conflictDetails.conflictCourse}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <FaCalendarAlt className="text-red-600" />
+                                  <span className="font-semibold text-black">
+                                    {conflictDetails.day}
+                                  </span>
+                                  <span className="text-gray-600">|</span>
+                                  <span className="font-mono text-red-700">
+                                    {conflictDetails.existingTime}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Lịch mới muốn đăng ký */}
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <FaClock className="text-orange-600 text-xl mt-1 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="font-semibold text-orange-900 mb-2">
+                                📝 Lịch lớp mới bạn muốn đăng ký:
+                              </p>
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="font-semibold text-black">
+                                  {conflictDetails.day}
+                                </span>
+                                <span className="text-gray-600">|</span>
+                                <span className="font-mono text-orange-700">
+                                  {conflictDetails.newTime}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      /* Fallback nếu không parse được */
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <FaExclamationTriangle className="text-red-600 text-xl mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="font-semibold text-red-900 mb-2">
+                              Chi tiết:
+                            </p>
+                            <div className="text-sm text-red-800 whitespace-pre-wrap">
+                              {message}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ERROR MESSAGE */}
+              {errorType === "error" && (
+                <div className="bg-red-600 text-white rounded-lg shadow-xl overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-start gap-4">
+                      <FaTimes className="text-3xl flex-shrink-0 mt-1" />
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-2">
+                          Không thể đăng ký
+                        </h3>
+                        <p className="text-lg">{message}</p>
+                      </div>
+                      <button
+                        onClick={() => setMessage(null)}
+                        className="text-white hover:bg-red-700 p-2 rounded-lg transition"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* WARNING MESSAGE (Waiting list) */}
+              {errorType === "warning" && (
+                <div className="bg-yellow-500 text-white rounded-lg shadow-xl overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-start gap-4">
+                      <FaInfoCircle className="text-3xl flex-shrink-0 mt-1" />
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-2">Thông báo</h3>
+                        <p className="text-lg">{message}</p>
+                      </div>
+                      <button
+                        onClick={() => setMessage(null)}
+                        className="text-white hover:bg-yellow-600 p-2 rounded-lg transition"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <div className="max-w-4xl">
@@ -542,6 +740,22 @@ export default function CourseDetail() {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

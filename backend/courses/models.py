@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 import random
 
+from django.forms import ValidationError
+
 class Course(models.Model):
     title = models.CharField(max_length=255, verbose_name="Tên khóa học")
     description = models.TextField(verbose_name="Mô tả")
@@ -58,6 +60,30 @@ class CourseClass(models.Model):
     def is_full(self):
         # Đếm số người đang học (ACTIVE)
         return self.enrollments.filter(status='ACTIVE').count() >= self.max_capacity
+    
+    def clean(self):
+        """Validate schedule format"""
+        if not isinstance(self.schedule, list):
+            raise ValidationError("Schedule phải là danh sách")
+        
+        for slot in self.schedule:
+            if not isinstance(slot, dict):
+                raise ValidationError("Mỗi slot phải là dictionary")
+            
+            required_keys = ['day', 'start', 'end']
+            if not all(key in slot for key in required_keys):
+                raise ValidationError(f"Schedule slot phải có: {required_keys}")
+            
+            # Validate day
+            day = slot['day']
+            if not isinstance(day, int) or day < 2 or day > 8:
+                raise ValidationError("Day phải là số từ 2 (Thứ 2) đến 8 (Chủ nhật)")
+            
+            # Validate time format
+            import re
+            time_pattern = r'^\d{2}:\d{2}$'
+            if not re.match(time_pattern, slot['start']) or not re.match(time_pattern, slot['end']):
+                raise ValidationError("Time phải theo format HH:MM")
 
 class Enrollment(models.Model):
     STATUS_CHOICES = (

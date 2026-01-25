@@ -360,3 +360,51 @@ class CourseDetailSerializer(serializers.ModelSerializer):
                     'status': enrollment.status
                 }
         return None
+    
+# Serializer riêng cho schedule của CourseClass
+class CourseClassScheduleSerializer(serializers.ModelSerializer):
+    """Serializer riêng cho schedule của CourseClass"""
+    class Meta:
+        model = CourseClass
+        fields = ['id', 'name', 'schedule', 'start_date', 'end_date']
+
+
+class EnrolledCourseDetailSerializer(serializers.ModelSerializer):
+    """Serializer chi tiết cho khóa học đã đăng ký, bao gồm schedule"""
+    class_name = serializers.CharField(source='course_class.name', read_only=True)
+    class_id = serializers.IntegerField(source='course_class.id', read_only=True)
+    schedules = serializers.SerializerMethodField()
+    course_title = serializers.CharField(source='course_class.course.title', read_only=True)
+    course_image = serializers.ImageField(source='course_class.course.image', read_only=True)
+    course_id = serializers.IntegerField(source='course_class.course.id', read_only=True)
+    
+    class Meta:
+        model = Enrollment
+        fields = [
+            'id', 'course_id', 'course_title', 'course_image',
+            'class_id', 'class_name', 'status', 'enrolled_at',
+            'final_score', 'schedules'
+        ]
+    
+    def get_schedules(self, obj):
+        """
+        Trả về schedule của CourseClass theo định dạng chuẩn
+        Format: [{"day": 2, "start": "08:00", "end": "10:00"}, ...]
+        """
+        schedule = obj.course_class.schedule
+        
+        # Kiểm tra schedule có phải là list không
+        if not isinstance(schedule, list):
+            return []
+        
+        # Chuẩn hóa format
+        normalized_schedule = []
+        for slot in schedule:
+            if isinstance(slot, dict) and all(k in slot for k in ['day', 'start', 'end']):
+                normalized_schedule.append({
+                    'day': int(slot['day']),  # Đảm bảo là số
+                    'start': str(slot['start']),  # Đảm bảo là string
+                    'end': str(slot['end'])
+                })
+        
+        return normalized_schedule
