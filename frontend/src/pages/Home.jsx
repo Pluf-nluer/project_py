@@ -50,13 +50,18 @@ function Home() {
       {recommendedCourses.length > 0 && (
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-10">
-            <div className="mb-8">
-              <p className="text-primary font-medium uppercase tracking-widest mb-2">
-                Dành riêng cho bạn
-              </p>
-              <h2 className="text-3xl font-bold text-text-dark">
-                Khóa học AI gợi ý
-              </h2>
+            <div className="mb-8 flex justify-between items-end">
+              <div>
+                <p className="text-primary font-medium uppercase tracking-widest mb-2">
+                  Dựa trên năng lực của bạn
+                </p>
+                <h2 className="text-3xl font-bold text-text-dark">
+                  Gợi ý lộ trình cá nhân hóa
+                </h2>
+              </div>
+              <span className="text-sm text-gray-400 italic">
+                Cập nhật dựa trên kết quả bài thi mới nhất
+              </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -65,13 +70,12 @@ function Home() {
                   key={`ai-${course.id}`}
                   course={{
                     ...course,
-                    // Đảm bảo có ảnh mặc định nếu backend chưa trả về
-                    image:
-                      course.image ||
-                      "https://eduma.thimpress.com/demo-online-learning/wp-content/uploads/sites/104/2022/12/Introduction-learnpress-lms-plugin-4-850x500.png",
+                    // Truyền thêm suitability vào card
+                    suitability: course.suitability, 
+                    image: course.image || "https://link-to-default-image.png",
                     instructor: course.instructor_name || "Chuyên gia",
-                    students: 100, // Có thể bổ sung từ DB sau
-                    lessons: course.total_lessons || 0,
+                    students: course.students || 0,
+                    lessons: course.lessons || 0,
                   }}
                 />
               ))}
